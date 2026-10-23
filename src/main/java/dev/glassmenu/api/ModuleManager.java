@@ -2,12 +2,16 @@ package dev.glassmenu.api;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.google.gson.reflect.TypeToken;
 import dev.glassmenu.gui.Ui;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +23,8 @@ public class ModuleManager {
 
     private final List<Module> modules = new ArrayList<>();
     private final Map<String, HudLayout> hudLayouts = new HashMap<>();
+    private final Map<String, KeyMapping> moduleKeybinds = new LinkedHashMap<>();
+    private boolean keybindsRegistered;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     /** What we store per module in config/glassmenu.json. */
@@ -38,12 +44,39 @@ public class ModuleManager {
         modules.add(m);
     }
 
+    private void registerKeybinds() {
+        if (keybindsRegistered) return;
+        KeyMapping.Category category = KeyMapping.Category.register(
+                Identifier.fromNamespaceAndPath("glassmenu", "modules"));
+        for (Module module : modules) {
+            KeyMapping mapping = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                    "key.glassmenu.module." + module.id,
+                    InputConstants.Type.KEYSYM,
+                    module.defaultKeyCode(),
+                    category));
+            moduleKeybinds.put(module.id, mapping);
+        }
+        keybindsRegistered = true;
+    }
+
     public List<Module> all() { return Collections.unmodifiableList(modules); }
 
     // ---- per tick / frame / HUD --------------------------------------
     public void tick(Minecraft mc) {
-        if (mc.player == null) return;
-        for (Module m : modules) if (m.isEnabled()) m.onTick(mc);
+        boolean inGameplay = mc.player != null && mc.screen == null;
+        for (Module m : modules) {
+            KeyMapping key = moduleKeybinds.get(m.id);
+            if (key != null) {
+                if (m.isHoldKeybind()) {
+                    m.onKeybindHeld(mc, inGameplay && m.isEnabled() && key.isDown());
+                } else {
+                    while (key.consumeClick()) {
+                        if (inGameplay) m.toggle();
+                    }
+                }
+            }
+            if (mc.player != null && m.isEnabled()) m.onTick(mc);
+        }
     }
 
     public void frame(Minecraft mc, float dt) {
@@ -126,6 +159,7 @@ public class ModuleManager {
     private static Path path() { return FabricLoader.getInstance().getConfigDir().resolve("glassmenu.json"); }
 
     public void load() {
+        registerKeybinds();
         try {
             Path p = path();
             if (!Files.exists(p)) {
