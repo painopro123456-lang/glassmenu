@@ -13,8 +13,8 @@ public final class Ui {
     public static boolean isLightTheme() { return lightTheme; }
     public static void setLightTheme(boolean value) { lightTheme = value; }
     public static void toggleTheme() { lightTheme = !lightTheme; }
-    public static int primaryText() { return lightTheme ? 0xFF263548 : 0xFFF2F6FB; }
-    public static int secondaryText() { return lightTheme ? 0xFF5B6878 : 0xFF93A1B5; }
+    public static int primaryText() { return lightTheme ? 0xFF334155 : 0xFFF2F6FB; }
+    public static int secondaryText() { return lightTheme ? 0xFF64748B : 0xFF93A1B5; }
     public static int sidebarOverlay() { return lightTheme ? 0x160A1826 : 0x40000000; }
     public static int dividerColor() { return lightTheme ? 0x33425468 : 0x2EFFFFFF; }
 
@@ -165,6 +165,6 @@ public final class Ui {
 
     public static void text(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color) {
         if ((color >>> 24) < 8) return;
-        g.text(font, s, x, y, color, true);
+        g.text(font, s, x, y, color, !lightTheme);
     }
 }
