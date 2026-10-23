@@ -5,6 +5,8 @@ import dev.glassmenu.api.ModuleManager;
 import dev.glassmenu.api.NumberSetting;
 import dev.glassmenu.gui.Ui;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -281,12 +283,55 @@ public final class ExtraModules {
         }
     }
 
-    /** Adds a HUD warning when your health drops below a configurable threshold. */
+    /** Shows a HUD warning and repeating double-beep when your health drops below a threshold. */
     private static final class LowHealthAlertModule extends Module {
+        private static final long SECOND_BEEP_DELAY_NANOS = 350_000_000L;
         private final NumberSetting threshold = number("threshold_hp", "HP threshold", 2, 20, 1, 6);
+        private final NumberSetting repeatInterval = number("beep_interval", "Beep repeat (seconds)", 1, 5, 0.5, 2);
+        private final NumberSetting beepVolume = number("beep_volume", "Beep volume", 0, 1, 0.1, 0.7);
+        private long nextBeepAt;
+        private long secondBeepAt;
+        private boolean secondBeepPending;
 
         private LowHealthAlertModule() {
-            super("low_health_alert", "Low Health Alert", "Warns you when your health gets low.", false, Module.Category.COMBAT);
+            super("low_health_alert", "Low Health Alert", "Shows a low-health warning with a repeating double-beep.", false, Module.Category.COMBAT);
+        }
+
+        @Override public void onEnable() {
+            nextBeepAt = 0L;
+            secondBeepPending = false;
+        }
+
+        @Override public void onDisable() {
+            nextBeepAt = 0L;
+            secondBeepPending = false;
+        }
+
+        @Override public void onTick(Minecraft mc) {
+            if (mc.player == null || mc.player.getHealth() > threshold.get()) {
+                nextBeepAt = 0L;
+                secondBeepPending = false;
+                return;
+            }
+
+            long now = System.nanoTime();
+            if (secondBeepPending && now >= secondBeepAt) {
+                playBeep(mc);
+                secondBeepPending = false;
+            }
+
+            if (now >= nextBeepAt) {
+                playBeep(mc);
+                secondBeepAt = now + SECOND_BEEP_DELAY_NANOS;
+                secondBeepPending = true;
+                nextBeepAt = now + (long) (repeatInterval.get() * 1_000_000_000L);
+            }
+        }
+
+        private void playBeep(Minecraft mc) {
+            float volume = (float) beepVolume.get();
+            if (volume <= 0.0F) return;
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.35F, volume));
         }
 
         @Override public String hudLine(Minecraft mc) {
