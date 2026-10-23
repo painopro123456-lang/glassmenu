@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class MenuScreen extends Screen {
     private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216, CATEGORY_H = 18;
-    private static final float OPEN_S = 0.22f, CLOSE_S = 0.14f;
+    private static final float OPEN_S = 0.22f, CLOSE_S = 0.18f;
     private static final String[] TABS = {"Modules", "Installed Mods", "Edit HUD"};
 
     /** One installed mod, read from its fabric.mod.json. */
@@ -59,6 +59,7 @@ public class MenuScreen extends Screen {
     private final float[] hov = new float[mods.size()];
     private final float[] instHov = new float[inst.size()];
     private final float[] expand = new float[mods.size()];
+    private final float[] rowOffsets = new float[mods.size()];
     private final boolean[] open = new boolean[mods.size()];
     private final float[] tabAnim = new float[TABS.length];
 
@@ -79,11 +80,24 @@ public class MenuScreen extends Screen {
     protected void init() {
         openAt = last = System.nanoTime();
         for (int i = 0; i < mods.size(); i++) sw[i] = mods.get(i).isEnabled() ? 1f : 0f;
+        rebuildRowOffsets();
         tabAnim[tab] = 1f;
     }
 
     // ---- layout -------------------------------------------------------
     private float rowH(int i) { return ROW + expand[i] * mods.get(i).settings.size() * SET_H; }
+
+    private void rebuildRowOffsets() {
+        float offset = 0f;
+        Module.Category previous = null;
+        for (int i = 0; i < mods.size(); i++) {
+            Module.Category current = mods.get(i).category();
+            if (current != previous) offset += CATEGORY_H;
+            rowOffsets[i] = offset;
+            offset += rowH(i);
+            previous = current;
+        }
+    }
 
     private float contentH() {
         if (tab == 1) return inst.size() * ROWM;
@@ -111,16 +125,7 @@ public class MenuScreen extends Screen {
 
     private float rowTop(int i) {
         float y = py() + HEAD - scroll;
-        if (tab == 1) return y + i * ROWM;
-        Module.Category previous = null;
-        for (int j = 0; j <= i; j++) {
-            Module.Category current = mods.get(j).category();
-            if (current != previous) y += CATEGORY_H;
-            if (j == i) return y;
-            y += rowH(j);
-            previous = current;
-        }
-        return y;
+        return tab == 1 ? y + i * ROWM : y + rowOffsets[i];
     }
 
     private int categoryCount(Module.Category category) {
@@ -169,6 +174,7 @@ public class MenuScreen extends Screen {
             sw[i] = Ui.smooth(sw[i], mods.get(i).isEnabled() ? 1f : 0f, dt, 16f);
             expand[i] = Ui.smooth(expand[i], open[i] ? 1f : 0f, dt, 14f);
         }
+        rebuildRowOffsets();
         for (int t = 0; t < TABS.length; t++) tabAnim[t] = Ui.smooth(tabAnim[t], t == tab ? 1f : 0f, dt, 16f);
         scrollTarget = Math.max(0, Math.min(maxScroll(), scrollTarget));
         scroll = Ui.smooth(scroll, scrollTarget, dt, 18f);

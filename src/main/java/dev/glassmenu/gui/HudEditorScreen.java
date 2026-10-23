@@ -18,6 +18,9 @@ public class HudEditorScreen extends Screen {
     private static final double MAX_SCALE = 2.5;
     private final Screen parent;
     private final ModuleManager manager = ModuleManager.get();
+    private final List<Module> modules = manager.all().stream()
+            .filter(module -> !module.isFullScreenOverlay())
+            .toList();
     private Module selected;
     private Module dragging;
     private double dragOffsetX, dragOffsetY;
@@ -40,9 +43,6 @@ public class HudEditorScreen extends Screen {
         Ui.rect(g, width - 92, 10, 76, 22, 6, Ui.isLightTheme() ? 0xD4DDE7EF : 0xB0203244);
         Ui.text(g, font, "Done (Esc)", width - 84, 17, Ui.primaryText());
 
-        List<Module> modules = manager.all().stream()
-                .filter(module -> !module.isFullScreenOverlay())
-                .toList();
         Minecraft mc = Minecraft.getInstance();
         for (Module module : modules) {
             HudLayout layout = manager.hudLayout(module, width, height);
@@ -79,7 +79,7 @@ public class HudEditorScreen extends Screen {
 
     private String previewText(Module module, Minecraft mc) {
         if (module.isEnabled() && mc.player != null) {
-            String line = module.hudLine(mc);
+            String line = manager.hudLine(module, mc);
             if (line != null) return line;
         }
         return module.name;
@@ -97,9 +97,6 @@ public class HudEditorScreen extends Screen {
     }
 
     private Module moduleAt(double mouseX, double mouseY) {
-        List<Module> modules = manager.all().stream()
-                .filter(module -> !module.isFullScreenOverlay())
-                .toList();
         Minecraft mc = Minecraft.getInstance();
         for (int i = modules.size() - 1; i >= 0; i--) {
             Module module = modules.get(i);

@@ -9,6 +9,7 @@ public final class Ui {
     private static int menuHue = 195;
     private static int menuOpacity = 100;
     private static boolean lightTheme;
+    private static final int[] HUE_COLORS = createHueColors();
 
     private Ui() {}
 
@@ -32,8 +33,18 @@ public final class Ui {
     }
     public static int dividerColor() { return lightTheme ? 0x33425468 : 0x2EFFFFFF; }
 
+    private static int[] createHueColors() {
+        int[] colors = new int[360];
+        for (int hue = 0; hue < colors.length; hue++) colors[hue] = calculateHueColor(hue);
+        return colors;
+    }
+
     public static int hueColor(int hue) {
-        float h = Math.floorMod(hue, 360) / 60f;
+        return HUE_COLORS[Math.floorMod(hue, HUE_COLORS.length)];
+    }
+
+    private static int calculateHueColor(int hue) {
+        float h = hue / 60f;
         int sector = (int) h;
         float x = 1f - Math.abs(h % 2f - 1f);
         float r = 0, gr = 0, b = 0;

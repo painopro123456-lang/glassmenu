@@ -22,7 +22,12 @@ public class ModuleManager {
     public static ModuleManager get() { return INSTANCE; }
 
     private final List<Module> modules = new ArrayList<>();
+    private final List<Module> readOnlyModules = Collections.unmodifiableList(modules);
     private final Map<String, HudLayout> hudLayouts = new HashMap<>();
+    private final Map<String, CachedHudLine> cachedHudLines = new HashMap<>();
+    private static final long HUD_LINE_CACHE_NANOS = 50_000_000L;
+
+    private record CachedHudLine(String line, long updatedAt) {}
     private final Map<String, KeyMapping> moduleKeybinds = new LinkedHashMap<>();
     private boolean keybindsRegistered;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -60,7 +65,19 @@ public class ModuleManager {
         keybindsRegistered = true;
     }
 
-    public List<Module> all() { return Collections.unmodifiableList(modules); }
+    public List<Module> all() { return readOnlyModules; }
+
+    /** Refresh text at 20 Hz; animated HUD drawing itself remains frame-based. */
+    public String hudLine(Module module, Minecraft mc) {
+        long now = System.nanoTime();
+        CachedHudLine cached = cachedHudLines.get(module.id);
+        if (cached == null || now - cached.updatedAt() >= HUD_LINE_CACHE_NANOS) {
+            String line = module.hudLine(mc);
+            cachedHudLines.put(module.id, new CachedHudLine(line, now));
+            return line;
+        }
+        return cached.line();
+    }
 
     // ---- per tick / frame / HUD --------------------------------------
     public void tick(Minecraft mc) {
@@ -91,7 +108,7 @@ public class ModuleManager {
         int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
         for (Module m : modules) {
             if (!m.isEnabled() || m.isFullScreenOverlay()) continue;
-            String line = m.hudLine(mc);
+            String line = hudLine(m, mc);
             String displayText = line == null ? m.name : line;
             HudLayout layout = hudLayout(m, w, h);
             float scale = (float) layout.scale();

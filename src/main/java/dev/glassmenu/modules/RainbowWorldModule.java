@@ -33,7 +33,8 @@ public final class RainbowWorldModule extends Module {
     public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int screenW, int screenH, float dt) {
         if (mc.player == null || screenW <= 0 || screenH <= 0 || hudOpacity.getInt() <= 0) return;
 
-        int strips = Math.max(1, Math.min(160, screenW / 6));
+        // Slightly wider strips keep the tint smooth while lowering per-frame draw calls.
+        int strips = Math.max(1, Math.min(128, screenW / 8));
         double elapsed = (System.nanoTime() - startedAt) / 1_000_000_000.0;
         double phase = (hudAccent.getInt() + elapsed * speed.get() * 24.0) % 360.0;
         int alpha = hudOpacity.getInt() * 255 / 100;
