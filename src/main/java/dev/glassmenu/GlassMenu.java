@@ -30,6 +30,7 @@ public class GlassMenu implements ClientModInitializer {
         ModuleManager.register(new CoordsModule());
         ModuleManager.register(new ArmorModule());
         ModuleManager.register(new SprintModule());
+        ExtraModules.register();
         // --------------------------------------------------------------------
 
         // modules contributed by other mods through the "glassmenu" entrypoint
