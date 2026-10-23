@@ -3,6 +3,9 @@ package dev.glassmenu.modules;
 import dev.glassmenu.api.Module;
 import dev.glassmenu.api.ModuleManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.time.LocalTime;
@@ -22,6 +25,9 @@ public final class ExtraModules {
         ModuleManager.register(new SessionModule());
         ModuleManager.register(new HealthModule());
         ModuleManager.register(new HungerModule());
+        ModuleManager.register(new TargetHudModule());
+        ModuleManager.register(new AttackCooldownModule());
+        ModuleManager.register(new PvpSuppliesModule());
     }
 
     private static final class ClockModule extends Module {
@@ -90,6 +96,44 @@ public final class ExtraModules {
             long minutes = (seconds % 3600) / 60;
             long remainder = seconds % 60;
             return String.format(Locale.ROOT, "Session: %02d:%02d:%02d", hours, minutes, remainder);
+        }
+    }
+
+    private static final class TargetHudModule extends Module {
+        private TargetHudModule() {
+            super("target_hud", "Target HUD", "Shows the name, health, and distance of the entity you are aiming at.", false);
+        }
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null || !(mc.hitResult instanceof EntityHitResult hit)
+                    || !(hit.getEntity() instanceof LivingEntity target)) return null;
+            return String.format(Locale.ROOT, "Target: %s %.0f/%.0f HP %.1f blocks",
+                    target.getName().getString(), target.getHealth(), target.getMaxHealth(),
+                    mc.player.distanceTo(target));
+        }
+    }
+
+    private static final class AttackCooldownModule extends Module {
+        private AttackCooldownModule() {
+            super("attack_cooldown", "Attack Cooldown", "Shows how ready your next attack is.", false);
+        }
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null) return null;
+            return String.format(Locale.ROOT, "Attack: %.0f%%",
+                    mc.player.getAttackStrengthScale(0.0F) * 100.0F);
+        }
+    }
+
+    private static final class PvpSuppliesModule extends Module {
+        private PvpSuppliesModule() {
+            super("pvp_supplies", "PvP Supplies", "Counts totems, ender pearls, golden apples, and end crystals.", false);
+        }
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null) return null;
+            var inventory = mc.player.getInventory();
+            return "PvP Items: Totems " + inventory.countItem(Items.TOTEM_OF_UNDYING)
+                    + " Pearls " + inventory.countItem(Items.ENDER_PEARL)
+                    + " Gapples " + inventory.countItem(Items.GOLDEN_APPLE)
+                    + " Crystals " + inventory.countItem(Items.END_CRYSTAL);
         }
     }
 
