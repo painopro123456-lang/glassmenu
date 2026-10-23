@@ -34,6 +34,7 @@ public final class ExtraModules {
         ModuleManager.register(new AttackCooldownModule());
         ModuleManager.register(new PvpSuppliesModule());
         ModuleManager.register(new StatusEffectsModule());
+        ModuleManager.register(new RainbowWorldModule());
     }
 
     private static final class ClockModule extends Module {
