@@ -32,13 +32,13 @@ public class HudEditorScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        g.fill(0, 0, width, height, 0xA0101826);
-        Ui.text(g, font, "HUD Layout Editor", 16, 14, 0xFFFFFFFF);
-        Ui.text(g, font, "Drag a HUD to move it. Scroll over one to resize. Right-click to reset.",
-                16, 28, 0xFFD2DBE8);
+        g.fill(0, 0, width, height, Ui.isLightTheme() ? 0xA0F1F4F8 : 0xA0101826);
+        Ui.text(g, font, "HUD Layout Editor", 16, 14, Ui.primaryText());
+        Ui.text(g, font, "Drag to move. Scroll to resize. Right-click to reset.",
+                16, 28, Ui.secondaryText());
 
-        Ui.rect(g, width - 92, 10, 76, 22, 6, 0xB0203244);
-        Ui.text(g, font, "Done (Esc)", width - 84, 17, 0xFFFFFFFF);
+        Ui.rect(g, width - 92, 10, 76, 22, 6, Ui.isLightTheme() ? 0xD4DDE7EF : 0xB0203244);
+        Ui.text(g, font, "Done (Esc)", width - 84, 17, Ui.primaryText());
 
         List<Module> modules = manager.all();
         Minecraft mc = Minecraft.getInstance();
@@ -46,18 +46,20 @@ public class HudEditorScreen extends Screen {
             HudLayout layout = manager.hudLayout(module, width, height);
             String label = previewText(module, mc);
             double scale = layout.scale();
-            double x = elementX(layout, label, scale);
-            double y = elementY(layout, scale);
-            double w = (font.width(label) + 15) * scale;
-            double h = 14 * scale;
+            double x = elementX(module, layout, label, scale, mc);
+            double y = elementY(module, layout, scale, mc);
+            double w = module.hudWidth(font, mc, label) * scale;
+            double h = module.hudHeight(font, mc, label) * scale;
 
             g.pose().pushMatrix();
             try {
                 g.pose().translate((float) x, (float) y);
                 g.pose().scale((float) scale, (float) scale);
-                if (module == selected) Ui.rect(g, -3, -3, font.width(label) + 21, 20, 5, 0xCC6FD3FF);
-                int color = module.isEnabled() ? 0xFFFFFFFF : 0xFFBEC9D7;
-                Ui.pill(g, font, 0, 0, label, color);
+                if (module == selected) Ui.rect(g, -3, -3, font.width(label) + 21, 20, 5,
+                        Ui.argb(0xCC, Ui.hueColor(module.hudAccent.getInt())));
+                int color = module.isEnabled() ? Ui.primaryText() : Ui.secondaryText();
+                Ui.pill(g, font, 0, 0, label, color, module.hudAccent.getInt(), module.hudOpacity.getInt());
+                if (module.isEnabled() && mc.player != null) module.renderHud(g, font, mc, width, height, delta);
             } finally {
                 g.pose().popMatrix();
             }
@@ -67,9 +69,9 @@ public class HudEditorScreen extends Screen {
             HudLayout layout = manager.hudLayout(selected, width, height);
             String label = previewText(selected, mc);
             String info = selected.name + "  |  " + Math.round(layout.scale() * 100) + "%";
-            Ui.text(g, font, info, 16, height - 20, 0xFFFFFFFF);
+            Ui.text(g, font, info, 16, height - 20, Ui.primaryText());
         } else {
-            Ui.text(g, font, "Choose a HUD element to edit its position and size.", 16, height - 20, 0xFFFFFFFF);
+            Ui.text(g, font, "Choose a HUD element to edit its position and size.", 16, height - 20, Ui.primaryText());
         }
     }
 
@@ -81,13 +83,14 @@ public class HudEditorScreen extends Screen {
         return module.name;
     }
 
-    private double elementX(HudLayout layout, String label, double scale) {
-        double max = Math.max(0, width - (font.width(label) + 15) * scale);
+    private double elementX(Module module, HudLayout layout, String label, double scale, Minecraft mc) {
+        double max = Math.max(0, width - module.hudWidth(font, mc, label) * scale);
         return Math.max(0, Math.min(max, layout.x() * width));
     }
 
-    private double elementY(HudLayout layout, double scale) {
-        double max = Math.max(0, height - 14 * scale);
+    private double elementY(Module module, HudLayout layout, double scale, Minecraft mc) {
+        String label = previewText(module, mc);
+        double max = Math.max(0, height - module.hudHeight(font, mc, label) * scale);
         return Math.max(0, Math.min(max, layout.y() * height));
     }
 
@@ -99,10 +102,10 @@ public class HudEditorScreen extends Screen {
             HudLayout layout = manager.hudLayout(module, width, height);
             String label = previewText(module, mc);
             double scale = layout.scale();
-            double x = elementX(layout, label, scale);
-            double y = elementY(layout, scale);
-            double w = (font.width(label) + 15) * scale;
-            double h = 14 * scale;
+            double x = elementX(module, layout, label, scale, mc);
+            double y = elementY(module, layout, scale, mc);
+            double w = module.hudWidth(font, mc, label) * scale;
+            double h = module.hudHeight(font, mc, label) * scale;
             if (mouseX >= x - 3 && mouseX <= x + w + 3
                     && mouseY >= y - 3 && mouseY <= y + h + 3) return module;
         }
@@ -130,8 +133,8 @@ public class HudEditorScreen extends Screen {
 
         HudLayout layout = manager.hudLayout(hit, width, height);
         String label = previewText(hit, Minecraft.getInstance());
-        dragOffsetX = mx - elementX(layout, label, layout.scale());
-        dragOffsetY = my - elementY(layout, layout.scale());
+        dragOffsetX = mx - elementX(hit, layout, label, layout.scale(), Minecraft.getInstance());
+        dragOffsetY = my - elementY(hit, layout, layout.scale(), Minecraft.getInstance());
         dragging = hit;
         return true;
     }
@@ -141,8 +144,9 @@ public class HudEditorScreen extends Screen {
         if (dragging == null) return true;
         HudLayout layout = manager.hudLayout(dragging, width, height);
         String label = previewText(dragging, Minecraft.getInstance());
-        double maxX = Math.max(0, width - (font.width(label) + 15) * layout.scale());
-        double maxY = Math.max(0, height - 14 * layout.scale());
+        Minecraft mc = Minecraft.getInstance();
+        double maxX = Math.max(0, width - dragging.hudWidth(font, mc, label) * layout.scale());
+        double maxY = Math.max(0, height - dragging.hudHeight(font, mc, label) * layout.scale());
         double x = Math.max(0, Math.min(maxX, event.x() - dragOffsetX));
         double y = Math.max(0, Math.min(maxY, event.y() - dragOffsetY));
         manager.setHudLayout(dragging, width, height, x, y, layout.scale());
@@ -166,8 +170,9 @@ public class HudEditorScreen extends Screen {
         HudLayout layout = manager.hudLayout(target, width, height);
         double scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, layout.scale() + scrollY * 0.1));
         String label = previewText(target, Minecraft.getInstance());
-        double x = elementX(layout, label, scale);
-        double y = elementY(layout, scale);
+        Minecraft mc = Minecraft.getInstance();
+        double x = elementX(target, layout, label, scale, mc);
+        double y = elementY(target, layout, scale, mc);
         manager.setHudLayout(target, width, height, x, y, scale);
         manager.save();
         return true;
