@@ -141,12 +141,12 @@ public class ModuleManager {
             if (client != null && client.lightTheme != null) Ui.setLightTheme(client.lightTheme);
             for (Module m : modules) {
                 Saved s = data.get(m.id);
-                if (!m.persistsEnabledState()) {
-                    m.setEnabled(false);
+                if (s == null) {
+                    if (!m.persistsEnabledState()) m.setEnabled(false);
                     continue;
                 }
-                if (s == null) continue;
-                m.setEnabled(s.enabled);
+                if (m.persistsEnabledState()) m.setEnabled(s.enabled);
+                else m.setEnabled(false);
                 for (NumberSetting ns : m.settings) {
                     Double v = s.settings.get(ns.key);
                     if (v != null) ns.set(v);
