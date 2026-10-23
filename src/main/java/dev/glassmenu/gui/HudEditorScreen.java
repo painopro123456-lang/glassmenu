@@ -40,7 +40,9 @@ public class HudEditorScreen extends Screen {
         Ui.rect(g, width - 92, 10, 76, 22, 6, Ui.isLightTheme() ? 0xD4DDE7EF : 0xB0203244);
         Ui.text(g, font, "Done (Esc)", width - 84, 17, Ui.primaryText());
 
-        List<Module> modules = manager.all();
+        List<Module> modules = manager.all().stream()
+                .filter(module -> !module.isFullScreenOverlay())
+                .toList();
         Minecraft mc = Minecraft.getInstance();
         for (Module module : modules) {
             HudLayout layout = manager.hudLayout(module, width, height);
@@ -95,7 +97,9 @@ public class HudEditorScreen extends Screen {
     }
 
     private Module moduleAt(double mouseX, double mouseY) {
-        List<Module> modules = manager.all();
+        List<Module> modules = manager.all().stream()
+                .filter(module -> !module.isFullScreenOverlay())
+                .toList();
         Minecraft mc = Minecraft.getInstance();
         for (int i = modules.size() - 1; i >= 0; i--) {
             Module module = modules.get(i);
