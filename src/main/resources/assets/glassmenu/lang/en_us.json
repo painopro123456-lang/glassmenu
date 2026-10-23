@@ -1,4 +1,25 @@
 {
   "key.category.glassmenu.main": "Moon Menu",
-  "key.glassmenu.open": "Open Menu"
+  "key.category.glassmenu.modules": "Moon Menu Modules",
+  "key.glassmenu.open": "Open Menu",
+  "key.glassmenu.module.fps": "FPS",
+  "key.glassmenu.module.cps": "CPS",
+  "key.glassmenu.module.coords": "Coordinates",
+  "key.glassmenu.module.armor": "Armor Display",
+  "key.glassmenu.module.sprint": "Toggle Sprint",
+  "key.glassmenu.module.clock": "Clock",
+  "key.glassmenu.module.speed": "Speed",
+  "key.glassmenu.module.direction": "Direction",
+  "key.glassmenu.module.keys": "Keys",
+  "key.glassmenu.module.memory": "Memory",
+  "key.glassmenu.module.session": "Session",
+  "key.glassmenu.module.health": "Health",
+  "key.glassmenu.module.hunger": "Hunger",
+  "key.glassmenu.module.target_hud": "Target HUD",
+  "key.glassmenu.module.attack_cooldown": "Attack Cooldown",
+  "key.glassmenu.module.pvp_supplies": "PvP Supplies",
+  "key.glassmenu.module.status_effects": "Status Effects",
+  "key.glassmenu.module.rainbow_world": "Rainbow World",
+  "key.glassmenu.module.jumpscare": "Jumpscare",
+  "key.glassmenu.module.zoom": "Zoom"
 }
