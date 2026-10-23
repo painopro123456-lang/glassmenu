@@ -9,6 +9,10 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.resources.Identifier;
 
 import java.io.InputStream;
@@ -18,18 +22,22 @@ import java.nio.file.Path;
 /** Shows a replaceable image for a few seconds, then fades it away. */
 public final class JumpscareModule extends Module {
     private static final Identifier TEXTURE_ID = Identifier.fromNamespaceAndPath("glassmenu", "jumpscare_custom");
+    private static final Identifier SCREAM_SOUND_ID = Identifier.fromNamespaceAndPath("glassmenu", "jumpscare_scream");
+    private static final SoundEvent SCREAM_SOUND = Registry.register(BuiltInRegistries.SOUND_EVENT,
+            SCREAM_SOUND_ID, SoundEvent.createVariableRangeEvent(SCREAM_SOUND_ID));
     private static final String RESOURCE = "/assets/glassmenu/textures/gui/jumpscare.png";
     private static final long NANOS_PER_SECOND = 1_000_000_000L;
 
     private final NumberSetting visibleSeconds = number("visible_seconds", "Visible time", 1, 10, 1, 5);
     private final NumberSetting fadeSeconds = number("fade_seconds", "Fade time", 0, 5, 0.25, 1);
+    private final NumberSetting screamVolume = number("scream_volume", "Scream volume", 0, 2.5, 0.1, 1.8);
     private long startedAt;
     private int imageWidth;
     private int imageHeight;
     private boolean imageReady;
 
     public JumpscareModule() {
-        super("jumpscare", "Jumpscare", "Shows your custom image; replace config/glassmenu/jumpscare.png to choose it.", false, Module.Category.RENDER);
+        super("jumpscare", "Jumpscare", "Covers the screen with your image and plays a scream.", false, Module.Category.RENDER);
         hudOpacity.set(100);
     }
 
@@ -52,6 +60,10 @@ public final class JumpscareModule extends Module {
     public void onEnable() {
         startedAt = System.nanoTime();
         imageReady = loadImage();
+        float volume = (float) screamVolume.get();
+        if (volume > 0.0F) {
+            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SCREAM_SOUND, 1.0F, volume));
+        }
     }
 
     @Override
@@ -67,6 +79,10 @@ public final class JumpscareModule extends Module {
         if (!imageReady || screenW <= 0 || screenH <= 0) return;
 
         double elapsed = (System.nanoTime() - startedAt) / (double) NANOS_PER_SECOND;
+        if (elapsed >= visibleSeconds.get() + fadeSeconds.get()) {
+            setEnabled(false);
+            return;
+        }
         double fade = fadeSeconds.get();
         double fadeProgress = fade <= 0 || elapsed <= visibleSeconds.get()
                 ? 1.0
@@ -78,9 +94,10 @@ public final class JumpscareModule extends Module {
         int backdropAlpha = (int) Math.round(96.0 * fadeProgress * opacity);
         g.fill(0, 0, screenW, screenH, backdropAlpha << 24);
 
-        double scale = Math.min(screenW * 0.94 / imageWidth, screenH * 0.94 / imageHeight);
-        int drawW = Math.max(1, (int) Math.round(imageWidth * scale));
-        int drawH = Math.max(1, (int) Math.round(imageHeight * scale));
+        // Cover-fit: preserve the image shape, crop the edges, and leave no gaps on any screen size.
+        double scale = Math.max(screenW / (double) imageWidth, screenH / (double) imageHeight);
+        int drawW = Math.max(screenW, (int) Math.ceil(imageWidth * scale));
+        int drawH = Math.max(screenH, (int) Math.ceil(imageHeight * scale));
         int x = (screenW - drawW) / 2;
         int y = (screenH - drawH) / 2;
         int tint = (imageAlpha << 24) | 0x00FFFFFF;

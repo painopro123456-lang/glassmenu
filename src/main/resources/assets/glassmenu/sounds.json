@@ -1,0 +1,11 @@
+{
+  "jumpscare_scream": {
+    "subtitle": "subtitles.glassmenu.jumpscare_scream",
+    "sounds": [
+      {
+        "name": "glassmenu:jumpscare_scream",
+        "volume": 1
+      }
+    ]
+  }
+}

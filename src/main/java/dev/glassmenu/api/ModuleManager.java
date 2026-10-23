@@ -116,8 +116,21 @@ public class ModuleManager {
         if (mc.player == null) return;
         int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
         for (Module m : modules) {
-            if (m.isEnabled() && m.isFullScreenOverlay()) {
+            // Draw the jumpscare after the active Screen instead, so it can cover the menu.
+            if (m.isEnabled() && m.isFullScreenOverlay()
+                    && (!m.id.equals("jumpscare") || mc.gui.screen() == null)) {
                 m.renderHud(g, mc.font, mc, w, h, 0.0f);
+            }
+        }
+    }
+
+    /** Draw only the jumpscare over the active Screen after its contents have been extracted. */
+    public void renderJumpscareOverlay(GuiGraphicsExtractor g, Minecraft mc) {
+        int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
+        for (Module m : modules) {
+            if (m.id.equals("jumpscare") && m.isEnabled()) {
+                m.renderHud(g, mc.font, mc, w, h, 0.0f);
+                break;
             }
         }
     }

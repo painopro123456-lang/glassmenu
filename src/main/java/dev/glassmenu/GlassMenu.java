@@ -10,17 +10,25 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 public class GlassMenu implements ClientModInitializer {
     public static KeyMapping menuKey;
     private static long lastFrame = System.nanoTime();
+    private static final Set<Screen> SCREENS_WITH_JUMPSCARE_OVERLAY =
+            Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
     public void onInitializeClient() {
@@ -46,6 +54,14 @@ public class GlassMenu implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             while (menuKey.consumeClick()) mc.setScreenAndShow(new MenuScreen(null));
             ModuleManager.get().tick(mc);
+        });
+
+        // Add the jumpscare after each screen is extracted so it sits above Moon Menu and other screens.
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (SCREENS_WITH_JUMPSCARE_OVERLAY.add(screen)) {
+                ScreenEvents.afterExtract(screen).register((renderedScreen, graphics, mouseX, mouseY, tickProgress) ->
+                        ModuleManager.get().renderJumpscareOverlay(graphics, Minecraft.getInstance()));
+            }
         });
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.MISC_OVERLAYS,

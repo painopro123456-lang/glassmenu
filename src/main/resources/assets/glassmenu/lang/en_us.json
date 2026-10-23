@@ -21,5 +21,6 @@
   "key.glassmenu.module.status_effects": "Status Effects",
   "key.glassmenu.module.rainbow_world": "Rainbow World",
   "key.glassmenu.module.jumpscare": "Jumpscare",
-  "key.glassmenu.module.zoom": "Zoom"
+  "key.glassmenu.module.zoom": "Zoom",
+  "subtitles.glassmenu.jumpscare_scream": "A sudden scream"
 }
