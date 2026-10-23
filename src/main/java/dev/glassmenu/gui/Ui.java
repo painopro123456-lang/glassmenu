@@ -6,8 +6,33 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 /** Drawing + animation helpers, including the glass panel look. */
 public final class Ui {
     public static final int ACCENT = 0x6FD3FF;
+    private static boolean lightTheme;
 
     private Ui() {}
+
+    public static boolean isLightTheme() { return lightTheme; }
+    public static void setLightTheme(boolean value) { lightTheme = value; }
+    public static void toggleTheme() { lightTheme = !lightTheme; }
+    public static int primaryText() { return lightTheme ? 0xFF263548 : 0xFFF2F6FB; }
+    public static int secondaryText() { return lightTheme ? 0xFF5B6878 : 0xFF93A1B5; }
+    public static int sidebarOverlay() { return lightTheme ? 0x160A1826 : 0x40000000; }
+    public static int dividerColor() { return lightTheme ? 0x33425468 : 0x2EFFFFFF; }
+
+    public static int hueColor(int hue) {
+        float h = Math.floorMod(hue, 360) / 60f;
+        int sector = (int) h;
+        float x = 1f - Math.abs(h % 2f - 1f);
+        float r = 0, gr = 0, b = 0;
+        switch (sector) {
+            case 0 -> { r = 1; gr = x; }
+            case 1 -> { r = x; gr = 1; }
+            case 2 -> { gr = 1; b = x; }
+            case 3 -> { gr = x; b = 1; }
+            case 4 -> { r = x; b = 1; }
+            default -> { r = 1; b = x; }
+        }
+        return ((int) (r * 255) << 16) | ((int) (gr * 255) << 8) | (int) (b * 255);
+    }
 
     public static int argb(int a, int rgb) { return (Math.max(0, Math.min(255, a)) << 24) | (rgb & 0xFFFFFF); }
 
@@ -59,8 +84,8 @@ public final class Ui {
         rect(g, x - 3, y - 3, w + 6, h + 6, r + 3, mulAlpha(0x14000000, e));
         rect(g, x - 2, y - 2, w + 4, h + 4, r + 2, mulAlpha(0x1E000000, e));
         rect(g, x - 1, y - 1, w + 2, h + 2, r + 1, mulAlpha(0x2E000000, e));
-        rect(g, x, y, w, h, r, mulAlpha(0x7A0E1826, e));
-        rect(g, x, y, w, h, r, mulAlpha(0x0EFFFFFF, e));
+        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0xE8F1F5FA : 0x7A0E1826, e));
+        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0x12FFFFFF : 0x0EFFFFFF, e));
         int n = Math.min(60, h / 3);
         for (int i = 0; i < n; i++) {
             float f = 1f - i / (float) n;
@@ -71,16 +96,18 @@ public final class Ui {
             int a = (int) (26 * (1f - i / (float) m));
             g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb(a, 0xFFFFFF), e));
         }
-        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(0x99FFFFFF, e));
-        g.fill(x + r, y + h - 1, x + w - r, y + h, mulAlpha(0x22FFFFFF, e));
-        g.fill(x, y + r, x + 1, y + h - r, mulAlpha(0x44FFFFFF, e));
-        g.fill(x + w - 1, y + r, x + w, y + h - r, mulAlpha(0x22FFFFFF, e));
+        int topEdge = lightTheme ? 0xA7FFFFFF : 0x99FFFFFF;
+        int sideEdge = lightTheme ? 0x55738698 : 0x44FFFFFF;
+        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(topEdge, e));
+        g.fill(x + r, y + h - 1, x + w - r, y + h, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, e));
+        g.fill(x, y + r, x + 1, y + h - r, mulAlpha(sideEdge, e));
+        g.fill(x + w - 1, y + r, x + w, y + h - r, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, e));
     }
 
     /** Rounded card used for list rows. {@code tint} is any ARGB colour, drawn over a faint base. */
     public static void card(GuiGraphicsExtractor g, int x, int y, int w, int h, float hover, float on, float e) {
-        rect(g, x, y, w, h, 6, mulAlpha(0x2A0A1220, e));
-        rect(g, x, y, w, h, 6, mulAlpha(argb((int) (10 + 26 * hover), 0xFFFFFF), e));
+        rect(g, x, y, w, h, 6, mulAlpha(lightTheme ? 0x24FFFFFF : 0x2A0A1220, e));
+        rect(g, x, y, w, h, 6, mulAlpha(argb((int) (lightTheme ? 18 + 20 * hover : 10 + 26 * hover), lightTheme ? 0x263548 : 0xFFFFFF), e));
         if (on > 0.01f) {
             rect(g, x, y, w, h, 6, mulAlpha(argb((int) (22 * on), ACCENT), e));
             rect(g, x, y + 5, 2, h - 10, 1, mulAlpha(argb((int) (255 * on), ACCENT), e));
@@ -121,12 +148,18 @@ public final class Ui {
         rect(g, x, ty, 3, th, 1, mulAlpha(argb(0xB0, ACCENT), e));
     }
 
-    /** Small glass pill used for HUD lines, with an accent tick on the left. */
+    /** Small HUD pill; hue and opacity are independently adjustable per module. */
     public static void pill(GuiGraphicsExtractor g, Font font, int x, int y, String text, int color) {
+        pill(g, font, x, y, text, color, 195, 40);
+    }
+
+    public static void pill(GuiGraphicsExtractor g, Font font, int x, int y, String text, int color, int hue, int opacity) {
         int w = font.width(text) + 15;
-        rect(g, x, y, w, 14, 5, 0x6610182A);
-        g.fill(x + 5, y, x + w - 5, y + 1, 0x44FFFFFF);
-        rect(g, x + 3, y + 3, 2, 8, 1, argb(0xFF, ACCENT));
+        int alpha = Math.max(0, Math.min(100, opacity)) * 255 / 100;
+        int background = argb(alpha, lightTheme ? 0xF7FAFD : 0x10182A);
+        rect(g, x, y, w, 14, 5, background);
+        g.fill(x + 5, y, x + w - 5, y + 1, lightTheme ? 0x33738698 : 0x44FFFFFF);
+        rect(g, x + 3, y + 3, 2, 8, 1, argb(0xFF, hueColor(hue)));
         text(g, font, text, x + 9, y + 3, color);
     }
 
