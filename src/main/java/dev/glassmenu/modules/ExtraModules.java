@@ -4,6 +4,7 @@ import dev.glassmenu.api.Module;
 import dev.glassmenu.api.ModuleManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -28,6 +29,7 @@ public final class ExtraModules {
         ModuleManager.register(new TargetHudModule());
         ModuleManager.register(new AttackCooldownModule());
         ModuleManager.register(new PvpSuppliesModule());
+        ModuleManager.register(new StatusEffectsModule());
     }
 
     private static final class ClockModule extends Module {
@@ -96,6 +98,49 @@ public final class ExtraModules {
             long minutes = (seconds % 3600) / 60;
             long remainder = seconds % 60;
             return String.format(Locale.ROOT, "Session: %02d:%02d:%02d", hours, minutes, remainder);
+        }
+    }
+
+    private static final class StatusEffectsModule extends Module {
+        private StatusEffectsModule() {
+            super("status_effects", "Status Effects", "Shows active potion effects, levels, and remaining time.", false);
+        }
+
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null) return null;
+            int total = mc.player.getActiveEffects().size();
+            if (total == 0) return "Effects: None";
+
+            StringBuilder line = new StringBuilder("Effects: ");
+            int shown = 0;
+            for (MobEffectInstance effect : mc.player.getActiveEffects()) {
+                if (shown == 2) break;
+                if (shown > 0) line.append(", ");
+                line.append(effect.getEffect().value().getDisplayName().getString());
+                int level = effect.getAmplifier() + 1;
+                if (level > 1) line.append(' ').append(levelName(level));
+                line.append(' ').append(duration(effect.getDuration()));
+                shown++;
+            }
+            if (total > shown) line.append(" +").append(total - shown);
+            return line.toString();
+        }
+
+        private static String duration(int ticks) {
+            if (ticks < 0) return "∞";
+            int seconds = ticks / 20;
+            return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+        }
+
+        private static String levelName(int level) {
+            return switch (level) {
+                case 1 -> "I";
+                case 2 -> "II";
+                case 3 -> "III";
+                case 4 -> "IV";
+                case 5 -> "V";
+                default -> Integer.toString(level);
+            };
         }
     }
 
