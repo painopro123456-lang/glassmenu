@@ -10,24 +10,52 @@ import net.minecraft.world.item.ItemStack;
 
 public class ArmorModule extends Module {
     private static final EquipmentSlot[] SLOTS = {
-            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+        EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
 
-    public ArmorModule() { super("armor", "Armor Display", "Shows worn armor with durability.", true); }
+    public ArmorModule() {
+        super("armor", "Armor Display", "Shows worn armor with durability.", true);
+    }
 
     @Override
-    public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int w, int h, float dt) {
-        int ax = w - 24, ay = h / 2 - 40;
+    public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int w, int h, float partial) {
+        int x = w - 24;
+        int y = h / 2 - 40;
+
         boolean any = false;
-        for (EquipmentSlot s : SLOTS) if (!mc.player.getItemBySlot(s).isEmpty()) any = true;
-        if (!any) return;
-        Ui.rect(g, ax - 3, ay - 3, 22, 18 * 4 + 4, 5, 0x55000000);
-        for (EquipmentSlot slot : SLOTS) {
-            ItemStack st = mc.player.getItemBySlot(slot);
-            if (!st.isEmpty()) {
-                g.item(st, ax, ay);
-                g.itemDecorations(font, st, ax, ay);
+        int textW = 0;
+        String[] labels = new String[4];
+        for (int i = 0; i < 4; i++) {
+            ItemStack s = mc.player.getItemBySlot(SLOTS[i]);
+            if (s.isEmpty()) continue;
+            any = true;
+            int max = s.getMaxDamage();
+            if (max > 0) {
+                labels[i] = String.valueOf(max - s.getDamageValue());
+                textW = Math.max(textW, font.width(labels[i]));
             }
-            ay += 18;
+        }
+        if (!any) return;
+
+        int extra = textW > 0 ? textW + 4 : 0;
+        Ui.rect(g, x - 3 - extra, y - 3, 22 + extra, 76, 5, 0x55000000);
+
+        int yy = y;
+        for (int i = 0; i < 4; i++) {
+            ItemStack s = mc.player.getItemBySlot(SLOTS[i]);
+            if (!s.isEmpty()) {
+                g.item(s, x, yy);
+                g.itemDecorations(font, s, x, yy);
+                if (labels[i] != null) {
+                    int max = s.getMaxDamage();
+                    float frac = Math.max(0f, Math.min(1f, (max - s.getDamageValue()) / (float) max));
+                    int r = (int) (255 * Math.min(1f, (1f - frac) * 2f));
+                    int gr = (int) (255 * Math.min(1f, frac * 2f));
+                    int color = 0xFF000000 | (r << 16) | (gr << 8) | 0x20;
+                    Ui.text(g, font, labels[i], x - 3 - font.width(labels[i]), yy + 4, color);
+                }
+            }
+            yy += 18;
         }
     }
 }
