@@ -63,7 +63,7 @@ public class ModuleManager {
 
     // ---- per tick / frame / HUD --------------------------------------
     public void tick(Minecraft mc) {
-        boolean inGameplay = mc.player != null && mc.screen == null;
+        boolean inGameplay = mc.player != null && mc.gui.screen() == null;
         for (Module m : modules) {
             KeyMapping key = moduleKeybinds.get(m.id);
             if (key != null) {
