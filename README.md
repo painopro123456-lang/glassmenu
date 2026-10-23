@@ -17,7 +17,7 @@ Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shif
 - **Edit HUD tab:** drag each HUD to move it, scroll over it to resize, or right-click it to reset. The health module includes a resizable health bar.
 - **Theme button:** switch between dark and light mode. Your theme and module settings are saved to `config/glassmenu.json`.
 
-Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Attack Cooldown, PvP Supplies, Status Effects, Clock, Speed, Direction, Keys, Memory, and Session.
+Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Attack Cooldown, PvP Supplies, Status Effects, Rainbow World, Clock, Speed, Direction, Keys, Memory, and Session. Rainbow World adds a client-side moving rainbow tint; expand its row to change the tint strength, color phase, and cycle speed.
 
 ## Add a module (2 steps)
 1. Create a class:
