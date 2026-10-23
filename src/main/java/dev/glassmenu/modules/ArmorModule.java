@@ -38,7 +38,9 @@ public class ArmorModule extends Module {
         if (!any) return;
 
         int extra = textW > 0 ? textW + 4 : 0;
-        Ui.rect(g, x - 3 - extra, y - 3, 22 + extra, 76, 5, 0x55000000);
+        Ui.rect(g, x - 3 - extra, y - 3, 22 + extra, 76, 5,
+                Ui.argb(hudOpacity.getInt() * 255 / 100, Ui.isLightTheme() ? 0xF7FAFD : 0x000000));
+        Ui.rect(g, x - 3 - extra, y + 2, 2, 66, 1, Ui.hueColor(hudAccent.getInt()));
 
         int yy = y;
         for (int i = 0; i < 4; i++) {
