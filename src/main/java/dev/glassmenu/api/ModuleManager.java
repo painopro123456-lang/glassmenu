@@ -26,6 +26,7 @@ public class ModuleManager {
         boolean enabled;
         Map<String, Double> settings = new LinkedHashMap<>();
         Double hudX, hudY, hudScale;
+        Boolean lightTheme;
     }
 
     public static void register(Module m) { INSTANCE.add(m); }
@@ -57,18 +58,19 @@ public class ModuleManager {
         for (Module m : modules) {
             if (!m.isEnabled()) continue;
             String line = m.hudLine(mc);
+            String displayText = line == null ? m.name : line;
             HudLayout layout = hudLayout(m, w, h);
             float scale = (float) layout.scale();
-            int localW = line != null ? font.width(line) + 15
-                    : (m.id.equals("armor") ? 32 : font.width(m.name) + 15);
-            int localH = m.id.equals("armor") && line == null ? 76 : 14;
+            int localW = m.id.equals("armor") && line == null ? 32 : m.hudWidth(font, mc, displayText);
+            int localH = m.id.equals("armor") && line == null ? 76 : m.hudHeight(font, mc, displayText);
             float x = (float) Math.max(0, Math.min(layout.x() * w, w - localW * scale));
             float y = (float) Math.max(0, Math.min(layout.y() * h, h - localH * scale));
             g.pose().pushMatrix();
             try {
                 g.pose().translate(x, y);
                 g.pose().scale(scale, scale);
-                if (line != null) Ui.pill(g, font, 0, 0, line, 0xFFFFFFFF);
+                if (line != null) Ui.pill(g, font, 0, 0, line, Ui.primaryText(),
+                        m.hudAccent.getInt(), m.hudOpacity.getInt());
                 m.renderHud(g, font, mc, w, h, dt);
             } finally {
                 g.pose().popMatrix();
@@ -118,6 +120,8 @@ public class ModuleManager {
             if (!Files.exists(p)) return;
             Map<String, Saved> data = GSON.fromJson(Files.readString(p), new TypeToken<Map<String, Saved>>() {}.getType());
             if (data == null) return;
+            Saved client = data.get("_client");
+            if (client != null && client.lightTheme != null) Ui.setLightTheme(client.lightTheme);
             for (Module m : modules) {
                 Saved s = data.get(m.id);
                 if (s == null) continue;
@@ -153,6 +157,9 @@ public class ModuleManager {
                 }
                 data.put(m.id, s);
             }
+            Saved client = new Saved();
+            client.lightTheme = Ui.isLightTheme();
+            data.put("_client", client);
             Files.writeString(path(), GSON.toJson(data));
         } catch (Exception e) {
             System.err.println("[glassmenu] could not save config: " + e);
