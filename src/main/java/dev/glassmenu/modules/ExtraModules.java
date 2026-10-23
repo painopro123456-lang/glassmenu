@@ -2,7 +2,11 @@ package dev.glassmenu.modules;
 
 import dev.glassmenu.api.Module;
 import dev.glassmenu.api.ModuleManager;
+import dev.glassmenu.api.NumberSetting;
+import dev.glassmenu.gui.Ui;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
@@ -183,10 +187,31 @@ public final class ExtraModules {
     }
 
     private static final class HealthModule extends Module {
-        private HealthModule() { super("health", "Health", "Shows your current and maximum health.", true); }
+        private final NumberSetting barWidth = number("bar_width", "Indicator width", 60, 180, 5, 110);
+
+        private HealthModule() { super("health", "Health", "Shows your health as a number and an adjustable bar.", true); }
+
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
             return String.format(Locale.ROOT, "Health: %.0f/%.0f", mc.player.getHealth(), mc.player.getMaxHealth());
+        }
+
+        @Override public int hudWidth(Font font, Minecraft mc, String displayText) {
+            return Math.max(barWidth.getInt(), super.hudWidth(font, mc, displayText));
+        }
+
+        @Override public int hudHeight(Font font, Minecraft mc, String displayText) { return 28; }
+
+        @Override public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int screenW, int screenH, float dt) {
+            if (mc.player == null) return;
+            int width = barWidth.getInt();
+            float max = Math.max(1.0f, mc.player.getMaxHealth());
+            float ratio = Math.max(0.0f, Math.min(1.0f, mc.player.getHealth() / max));
+            int background = Ui.argb(hudOpacity.getInt() * 255 / 100,
+                    Ui.isLightTheme() ? 0x8592A1 : 0x10182A);
+            Ui.rect(g, 0, 17, width, 8, 4, background);
+            int fill = Math.max(0, Math.min(width - 2, Math.round((width - 2) * ratio)));
+            if (fill > 0) Ui.rect(g, 1, 18, fill, 6, 3, Ui.hueColor(hudAccent.getInt()));
         }
     }
 
