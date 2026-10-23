@@ -331,7 +331,7 @@ public final class ExtraModules {
         private void playBeep(Minecraft mc) {
             float volume = (float) beepVolume.get();
             if (volume <= 0.0F) return;
-            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.35F, volume));
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_BIT, 1.35F, volume));
         }
 
         @Override public String hudLine(Minecraft mc) {
