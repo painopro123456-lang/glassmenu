@@ -67,7 +67,7 @@ public class MenuScreen extends Screen {
     private int dragX, dragW;
 
     public MenuScreen(Screen parent) {
-        super(Component.literal("Glass Menu"));
+        super(Component.literal("Moon Menu"));
         this.parent = parent;
     }
 
@@ -160,7 +160,7 @@ public class MenuScreen extends Screen {
         g.fill(x + 1, y + 8, x + 8, y + h - 8, side);
         g.fill(x + SIDE, y + 8, x + SIDE + 1, y + h - 8, Ui.mulAlpha(0x2EFFFFFF, e));
 
-        Ui.text(g, font, "Glass Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
+        Ui.text(g, font, "Moon Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
         g.fill(x + 14, y + 29, x + SIDE - 14, y + 30, Ui.mulAlpha(0x22FFFFFF, e));
 
         for (int t = 0; t < TABS.length; t++) {
