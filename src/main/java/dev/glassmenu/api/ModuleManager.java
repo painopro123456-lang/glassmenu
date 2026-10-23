@@ -128,13 +128,23 @@ public class ModuleManager {
     public void load() {
         try {
             Path p = path();
-            if (!Files.exists(p)) return;
+            if (!Files.exists(p)) {
+                for (Module m : modules) if (!m.persistsEnabledState()) m.setEnabled(false);
+                return;
+            }
             Map<String, Saved> data = GSON.fromJson(Files.readString(p), new TypeToken<Map<String, Saved>>() {}.getType());
-            if (data == null) return;
+            if (data == null) {
+                for (Module m : modules) if (!m.persistsEnabledState()) m.setEnabled(false);
+                return;
+            }
             Saved client = data.get("_client");
             if (client != null && client.lightTheme != null) Ui.setLightTheme(client.lightTheme);
             for (Module m : modules) {
                 Saved s = data.get(m.id);
+                if (!m.persistsEnabledState()) {
+                    m.setEnabled(false);
+                    continue;
+                }
                 if (s == null) continue;
                 m.setEnabled(s.enabled);
                 for (NumberSetting ns : m.settings) {
@@ -158,7 +168,7 @@ public class ModuleManager {
             Map<String, Saved> data = new LinkedHashMap<>();
             for (Module m : modules) {
                 Saved s = new Saved();
-                s.enabled = m.isEnabled();
+                s.enabled = m.persistsEnabledState() && m.isEnabled();
                 for (NumberSetting ns : m.settings) s.settings.put(ns.key, ns.get());
                 HudLayout layout = hudLayouts.get(m.id);
                 if (layout != null) {

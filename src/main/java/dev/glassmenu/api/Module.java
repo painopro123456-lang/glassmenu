@@ -48,6 +48,9 @@ public abstract class Module {
     public void onEnable() {}
     public void onDisable() {}
 
+    /** Whether this module's enabled state should be restored from the config. */
+    public boolean persistsEnabledState() { return true; }
+
     /** Called every client tick (20/s) while enabled and in a world. */
     public void onTick(Minecraft mc) {}
 
