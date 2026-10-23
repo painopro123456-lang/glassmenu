@@ -155,10 +155,10 @@ public class MenuScreen extends Screen {
         Ui.glass(g, x, y, PW, h, 10, e);
 
         // sidebar: darker strip with a divider
-        int side = Ui.mulAlpha(0x40000000, e);
+        int side = Ui.mulAlpha(Ui.sidebarOverlay(), e);
         g.fill(x + 8, y + 1, x + SIDE, y + h - 1, side);
         g.fill(x + 1, y + 8, x + 8, y + h - 8, side);
-        g.fill(x + SIDE, y + 8, x + SIDE + 1, y + h - 8, Ui.mulAlpha(0x2EFFFFFF, e));
+        g.fill(x + SIDE, y + 8, x + SIDE + 1, y + h - 8, Ui.mulAlpha(Ui.dividerColor(), e));
 
         Ui.text(g, font, "Moon Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
         g.fill(x + 14, y + 29, x + SIDE - 14, y + 30, Ui.mulAlpha(0x22FFFFFF, e));
@@ -167,16 +167,20 @@ public class MenuScreen extends Screen {
             int tx = x + 8, ty = tabY(t) + yOff, tw = SIDE - 16;
             Ui.rect(g, tx, ty, tw, TAB_H, 6, Ui.mulAlpha(Ui.argb((int) (46 * tabAnim[t]), Ui.ACCENT), e));
             Ui.rect(g, tx, ty + 5, 2, TAB_H - 10, 1, Ui.mulAlpha(Ui.argb((int) (255 * tabAnim[t]), Ui.ACCENT), e));
-            int col = Ui.lerpColor(0xFFA9B6C8, 0xFFFFFFFF, tabAnim[t]);
+            int col = Ui.lerpColor(Ui.secondaryText(), Ui.primaryText(), tabAnim[t]);
             Ui.text(g, font, TABS[t], tx + 10, ty + 7, Ui.mulAlpha(col, e));
         }
 
         String key = GlassMenu.menuKey.getTranslatedKeyMessage().getString();
-        Ui.text(g, font, fit(key, SIDE - 24), x + 14, y + h - 28, Ui.mulAlpha(0xFFC8D4E3, e));
-        Ui.text(g, font, "or Esc to close", x + 14, y + h - 17, Ui.mulAlpha(0xFF7D8BA0, e));
+        Ui.rect(g, x + 12, y + h - 50, 80, 18, 5,
+                Ui.mulAlpha(Ui.isLightTheme() ? 0xD9DDE7EF : 0x55334558, e));
+        Ui.text(g, font, Ui.isLightTheme() ? "Theme: Light" : "Theme: Dark",
+                x + 17, y + h - 44, Ui.mulAlpha(Ui.primaryText(), e));
+        Ui.text(g, font, fit(key, SIDE - 24), x + 14, y + h - 28, Ui.mulAlpha(Ui.secondaryText(), e));
+        Ui.text(g, font, "or Esc to close", x + 14, y + h - 17, Ui.mulAlpha(Ui.secondaryText(), e));
 
         // content header
-        Ui.text(g, font, TABS[tab], cx() + PAD, y + 14, Ui.mulAlpha(0xFFF2F6FB, e));
+        Ui.text(g, font, TABS[tab], cx() + PAD, y + 14, Ui.mulAlpha(Ui.primaryText(), e));
         String cnt = tab == 0 ? mods.size() + " modules" : inst.size() + " mods";
         Ui.badge(g, font, cnt, x + PW - PAD, y + 12, e);
         g.fill(cx() + PAD, y + HEAD - 6, x + PW - PAD, y + HEAD - 5, Ui.mulAlpha(0x22FFFFFF, e));
@@ -207,8 +211,8 @@ public class MenuScreen extends Screen {
             hov[i] = Ui.smooth(hov[i], over ? 1f : 0f, dt, 18f);
 
             Ui.card(g, lx, ry, lw, ROW - 4, hov[i], sw[i], e);
-            Ui.text(g, font, m.name, lx + 10, ry + 6, Ui.mulAlpha(0xFFF2F6FB, e));
-            Ui.text(g, font, fit(m.description, lw - 90), lx + 10, ry + 17, Ui.mulAlpha(0xFF93A1B5, e));
+            Ui.text(g, font, m.name, lx + 10, ry + 6, Ui.mulAlpha(Ui.primaryText(), e));
+            Ui.text(g, font, fit(m.description, lw - 90), lx + 10, ry + 17, Ui.mulAlpha(Ui.secondaryText(), e));
 
             Ui.toggle(g, tx, ry + (ROW - 4 - 14) / 2, sw[i], e);
 
@@ -222,7 +226,7 @@ public class MenuScreen extends Screen {
                 for (int k = 0; k < m.settings.size(); k++) {
                     NumberSetting s = m.settings.get(k);
                     int sy = ry + ROW + k * SET_H;
-                    Ui.text(g, font, s.label, lx + 14, sy + 1, Ui.mulAlpha(0xFFDCE4EE, ea));
+                    Ui.text(g, font, s.label, lx + 14, sy + 1, Ui.mulAlpha(Ui.primaryText(), ea));
                     String v = s.display();
                     Ui.text(g, font, v, lx + lw - 14 - font.width(v), sy + 1, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), ea));
                     Ui.slider(g, lx + 14, sy + 15, lw - 28, s.fraction(), ea);
@@ -244,9 +248,9 @@ public class MenuScreen extends Screen {
 
             Ui.card(g, lx, ry, lw, ROWM - 4, instHov[i], 0f, e);
             int bw = Ui.badge(g, font, "v" + m.version(), lx + lw - 8, ry + 7, e);
-            Ui.text(g, font, fit(m.name(), lw - 36 - bw), lx + 10, ry + 8, Ui.mulAlpha(0xFFF2F6FB, e));
+            Ui.text(g, font, fit(m.name(), lw - 36 - bw), lx + 10, ry + 8, Ui.mulAlpha(Ui.primaryText(), e));
             String desc = m.description().isEmpty() ? "No description" : m.description();
-            Ui.text(g, font, fit(desc, lw - 20), lx + 10, ry + 21, Ui.mulAlpha(0xFF93A1B5, e));
+            Ui.text(g, font, fit(desc, lw - 20), lx + 10, ry + 21, Ui.mulAlpha(Ui.secondaryText(), e));
         }
     }
 
@@ -258,6 +262,13 @@ public class MenuScreen extends Screen {
         int x = px(), y = py();
 
         if (mx < x || mx > x + PW || my < y || my > y + panelH()) { requestClose(); return true; }
+
+        int themeTop = y + panelH() - 50;
+        if (mx >= x + 12 && mx <= x + 92 && my >= themeTop && my <= themeTop + 18) {
+            Ui.toggleTheme();
+            ModuleManager.get().save();
+            return true;
+        }
 
         // sidebar tabs
         for (int t = 0; t < TABS.length; t++) {
