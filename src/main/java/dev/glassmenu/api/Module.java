@@ -23,7 +23,7 @@ public abstract class Module {
         this.description = description;
         this.enabled = defaultEnabled;
         this.hudAccent = new NumberSetting("hud_accent", "Accent hue", 0, 360, 15, 195);
-        this.hudOpacity = new NumberSetting("hud_opacity", "Background opacity", 0, 100, 5, 40);
+        this.hudOpacity = new NumberSetting("hud_opacity", "Opacity", 0, 100, 5, 40);
         settings.add(hudAccent);
         settings.add(hudOpacity);
     }
@@ -56,6 +56,9 @@ public abstract class Module {
 
     /** One line of text shown as a HUD pill (stacked top-left). Return null to show nothing. */
     public String hudLine(Minecraft mc) { return null; }
+
+    /** True when this module draws a screen-wide effect behind the normal HUD. */
+    public boolean isFullScreenOverlay() { return false; }
 
     /** Width used to clamp this HUD element to the screen. */
     public int hudWidth(Font font, Minecraft mc, String displayText) {
