@@ -14,6 +14,7 @@ import java.util.List;
 public abstract class Module {
     public final String id, name, description;
     public final List<NumberSetting> settings = new ArrayList<>();
+    public final NumberSetting hudAccent, hudOpacity;
     private boolean enabled;
 
     protected Module(String id, String name, String description, boolean defaultEnabled) {
@@ -21,6 +22,10 @@ public abstract class Module {
         this.name = name;
         this.description = description;
         this.enabled = defaultEnabled;
+        this.hudAccent = new NumberSetting("hud_accent", "Accent hue", 0, 360, 15, 195);
+        this.hudOpacity = new NumberSetting("hud_opacity", "Background opacity", 0, 100, 5, 40);
+        settings.add(hudAccent);
+        settings.add(hudOpacity);
     }
 
     public boolean isEnabled() { return enabled; }
@@ -51,6 +56,14 @@ public abstract class Module {
 
     /** One line of text shown as a HUD pill (stacked top-left). Return null to show nothing. */
     public String hudLine(Minecraft mc) { return null; }
+
+    /** Width used to clamp this HUD element to the screen. */
+    public int hudWidth(Font font, Minecraft mc, String displayText) {
+        return font.width(displayText) + 15;
+    }
+
+    /** Height used to clamp this HUD element to the screen. */
+    public int hudHeight(Font font, Minecraft mc, String displayText) { return 14; }
 
     /** Custom HUD drawing. Coordinates are in GUI-scaled pixels. */
     public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int screenW, int screenH, float dt) {}
