@@ -31,6 +31,7 @@ public final class ExtraModules {
         ModuleManager.register(new HealthModule());
         ModuleManager.register(new HungerModule());
         ModuleManager.register(new TargetHudModule());
+        ModuleManager.register(new HitHealthIndicatorModule());
         ModuleManager.register(new AttackCooldownModule());
         ModuleManager.register(new PvpSuppliesModule());
         ModuleManager.register(new StatusEffectsModule());

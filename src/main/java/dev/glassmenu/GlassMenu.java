@@ -8,6 +8,7 @@ import dev.glassmenu.modules.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -18,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.InteractionResult;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
@@ -40,6 +42,13 @@ public class GlassMenu implements ClientModInitializer {
         ModuleManager.register(new SprintModule());
         ExtraModules.register();
         // --------------------------------------------------------------------
+
+        AttackEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+            if (level.isClientSide() && player == Minecraft.getInstance().player && !player.isSpectator()) {
+                HitHealthIndicatorModule.recordAttack(entity);
+            }
+            return InteractionResult.PASS;
+        });
 
         // modules contributed by other mods through the "glassmenu" entrypoint
         for (ModuleProvider p : FabricLoader.getInstance().getEntrypoints("glassmenu", ModuleProvider.class)) {
@@ -81,5 +90,6 @@ public class GlassMenu implements ClientModInitializer {
         lastFrame = now;
         ModuleManager.get().frame(mc, dt);
         ModuleManager.get().renderHud(g, mc, dt);
+        HitHealthIndicatorModule.renderFloating(g, mc);
     }
 }

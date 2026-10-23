@@ -13,13 +13,13 @@ Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shif
 
 - **Installed Mods tab:** lists every mod in your mods folder automatically (name, version, description).
   Drop a new mod in, restart the game, and it shows up. No setup needed.
-- **Modules tab:** click a row to toggle it, then click the > arrow to adjust its settings. Every module has its own accent hue and background opacity controls; modules may also have extra options. Modules are grouped under Combat, Render, Player, and HUD headings.
+- **Modules tab:** click a row to toggle it, then click the > arrow to adjust its settings. Every module has its own accent hue and background opacity controls; modules may also have extra options. Modules are grouped under Combat, Render, Player, and HUD headings. The new **Hit Health** module shows a short-lived health card above the last mob or player you attacked.
 - **Edit HUD tab:** drag each HUD to move it, scroll over it to resize, or right-click it to reset. The health module includes a resizable health bar.
 - **Module keybinds:** open Options > Controls > Key Binds > Moon Menu Modules to assign a key to each module. Zoom uses C by default; hold it to zoom. Minecraft saves your key assignments in `options.txt`.
 - **Theme button:** switch between dark and light mode. Your theme and module settings are saved to config/glassmenu.json.
 - **Jumpscare:** covers the full screen above Moon Menu, shows the supplied picture, and plays a sharp scream when activated. Expand its settings to change visible time, fade time, opacity, and scream volume. To use another image, replace config/glassmenu/jumpscare.png with your own PNG (created on first use), then turn the module off and on. The bundled scream is “Scream” by DigitalDominic on Freesound, shared under CC0: https://freesound.org/people/DigitalDominic/sounds/175385/.
 
-Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Attack Cooldown, PvP Supplies, Status Effects, Rainbow World, Jumpscare, Clock, Speed, Direction, Keys, Memory, and Session. Rainbow World adds a client-side moving rainbow tint; expand its row to change the tint strength, color phase, and cycle speed.
+Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Hit Health, Attack Cooldown, PvP Supplies, Status Effects, Rainbow World, Jumpscare, Clock, Speed, Direction, Keys, Memory, Session, and Zoom. Rainbow World adds a client-side moving rainbow tint; expand its row to change the tint strength, color phase, and cycle speed.
 
 ## Add a module (2 steps)
 1. Create a class:

@@ -106,8 +106,11 @@ public final class Ui {
 
     /** Rounded card used for list rows. {@code tint} is any ARGB colour, drawn over a faint base. */
     public static void card(GuiGraphicsExtractor g, int x, int y, int w, int h, float hover, float on, float e) {
-        rect(g, x, y, w, h, 6, mulAlpha(lightTheme ? 0x24FFFFFF : 0x2A0A1220, e));
+        rect(g, x, y, w, h, 6, mulAlpha(lightTheme ? 0x2AFFFFFF : 0x340A1220, e));
         rect(g, x, y, w, h, 6, mulAlpha(argb((int) (lightTheme ? 18 + 20 * hover : 10 + 26 * hover), lightTheme ? 0x263548 : 0xFFFFFF), e));
+        int edge = argb((int) (10 + 15 * hover + 12 * on), lightTheme ? 0x6B7C8F : 0xDDE8F2);
+        g.fill(x + 6, y, x + w - 6, y + 1, mulAlpha(edge, e));
+        g.fill(x + 6, y + h - 1, x + w - 6, y + h, mulAlpha(edge, e));
         if (on > 0.01f) {
             rect(g, x, y, w, h, 6, mulAlpha(argb((int) (22 * on), ACCENT), e));
             rect(g, x, y + 5, 2, h - 10, 1, mulAlpha(argb((int) (255 * on), ACCENT), e));

@@ -139,7 +139,8 @@ public class MenuScreen extends Screen {
     // ---- rendering ----------------------------------------------------
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        // intentionally empty: no blur, no dimming -> the glass sits directly over the game
+        // A light touch of contrast keeps the glass readable without hiding the game.
+        g.fill(0, 0, width, height, Ui.isLightTheme() ? 0x0C26384A : 0x18000000);
     }
 
     @Override
@@ -184,6 +185,7 @@ public class MenuScreen extends Screen {
 
         Ui.text(g, font, "Moon Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
         g.fill(x + 14, y + 29, x + SIDE - 14, y + 30, Ui.mulAlpha(0x22FFFFFF, e));
+        Ui.text(g, font, "FABRIC 26.2", x + 14, y + 34, Ui.mulAlpha(Ui.secondaryText(), e));
 
         for (int t = 0; t < TABS.length; t++) {
             int tx = x + 8, ty = tabY(t) + yOff, tw = SIDE - 16;
