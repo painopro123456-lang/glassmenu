@@ -25,7 +25,7 @@ import java.util.List;
 public class MenuScreen extends Screen {
     private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216;
     private static final float OPEN_S = 0.22f, CLOSE_S = 0.14f;
-    private static final String[] TABS = {"Modules", "Installed Mods"};
+    private static final String[] TABS = {"Modules", "Installed Mods", "Edit HUD"};
 
     /** One installed mod, read from its fabric.mod.json. */
     private record Installed(String name, String version, String description) {}
@@ -262,6 +262,10 @@ public class MenuScreen extends Screen {
         // sidebar tabs
         for (int t = 0; t < TABS.length; t++) {
             if (mx >= x + 8 && mx < x + SIDE - 8 && my >= tabY(t) && my < tabY(t) + TAB_H) {
+                if (t == 2) {
+                    minecraft.setScreenAndShow(new HudEditorScreen(this));
+                    return true;
+                }
                 if (t != tab) { tab = t; scroll = scrollTarget = 0; dragging = null; }
                 return true;
             }

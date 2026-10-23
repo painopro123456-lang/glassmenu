@@ -19,8 +19,8 @@ public class ArmorModule extends Module {
 
     @Override
     public void renderHud(GuiGraphicsExtractor g, Font font, Minecraft mc, int w, int h, float partial) {
-        int x = w - 24;
-        int y = h / 2 - 40;
+        int x = 0;
+        int y = 0;
 
         boolean any = false;
         int textW = 0;
