@@ -67,6 +67,7 @@ public class MenuScreen extends Screen {
     private boolean closing;
     private float scroll, scrollTarget;
     private NumberSetting dragging;
+    private boolean draggingMenuHue, draggingMenuOpacity;
     private int dragX, dragW;
 
     public MenuScreen(Screen parent) {
@@ -195,9 +196,21 @@ public class MenuScreen extends Screen {
             Ui.text(g, font, TABS[t], tx + 10, ty + 7, Ui.mulAlpha(col, e));
         }
 
+        String hex = String.format("#%06X", Ui.ACCENT & 0xFFFFFF);
+        Ui.text(g, font, "Menu color", x + 14, y + h - 107, Ui.mulAlpha(Ui.primaryText(), e));
+        Ui.text(g, font, hex, x + SIDE - 14 - font.width(hex), y + h - 107,
+                Ui.mulAlpha(Ui.secondaryText(), e));
+        Ui.colorWheel(g, x + 14, y + h - 94, SIDE - 28, 8, e);
+        String opacity = "Opacity";
+        String opacityValue = Ui.menuOpacity() + "%";
+        Ui.text(g, font, opacity, x + 14, y + h - 76, Ui.mulAlpha(Ui.primaryText(), e));
+        Ui.text(g, font, opacityValue, x + SIDE - 14 - font.width(opacityValue), y + h - 76,
+                Ui.mulAlpha(Ui.secondaryText(), e));
+        Ui.slider(g, x + 14, y + h - 62, SIDE - 28, Ui.menuOpacityFraction(), e);
+
         String key = GlassMenu.menuKey.getTranslatedKeyMessage().getString();
         Ui.rect(g, x + 12, y + h - 50, 80, 18, 5,
-                Ui.mulAlpha(Ui.isLightTheme() ? 0xD9DDE7EF : 0x55334558, e));
+                Ui.mulAlpha(Ui.isLightTheme() ? 0xD9DDE7EF : 0x55334558, e * Ui.menuOpacity() / 100.0f));
         Ui.text(g, font, Ui.isLightTheme() ? "Theme: Light" : "Theme: Dark",
                 x + 17, y + h - 44, Ui.mulAlpha(Ui.primaryText(), e));
         Ui.text(g, font, fit(key, SIDE - 24), x + 14, y + h - 28, Ui.mulAlpha(Ui.secondaryText(), e));
@@ -308,6 +321,20 @@ public class MenuScreen extends Screen {
             return true;
         }
 
+        int pickerX = x + 14, pickerW = SIDE - 28;
+        int pickerTop = y + panelH() - 94;
+        if (mx >= pickerX && mx < pickerX + pickerW && my >= pickerTop && my < pickerTop + 8) {
+            draggingMenuHue = true;
+            updateMenuHue(mx);
+            return true;
+        }
+        int opacityTop = y + panelH() - 62;
+        if (mx >= pickerX && mx <= pickerX + pickerW && my >= opacityTop - 2 && my <= opacityTop + 8) {
+            draggingMenuOpacity = true;
+            updateMenuOpacity(mx);
+            return true;
+        }
+
         // sidebar tabs
         for (int t = 0; t < TABS.length; t++) {
             if (mx >= x + 8 && mx < x + SIDE - 8 && my >= tabY(t) && my < tabY(t) + TAB_H) {
@@ -352,12 +379,18 @@ public class MenuScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (dragging != null) updateSlider(event.x());
+        if (draggingMenuHue) updateMenuHue(event.x());
+        else if (draggingMenuOpacity) updateMenuOpacity(event.x());
+        else if (dragging != null) updateSlider(event.x());
         return true;
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
+        if (draggingMenuHue || draggingMenuOpacity) {
+            draggingMenuHue = draggingMenuOpacity = false;
+            ModuleManager.get().save();
+        }
         if (dragging != null) { dragging = null; ModuleManager.get().save(); }
         return true;
     }
@@ -371,6 +404,16 @@ public class MenuScreen extends Screen {
     private void updateSlider(double mx) {
         float frac = Ui.clamp01((float) ((mx - dragX) / dragW));
         dragging.set(dragging.min + frac * (dragging.max - dragging.min));
+    }
+
+    private void updateMenuHue(double mx) {
+        float frac = Ui.clamp01((float) ((mx - (px() + 14)) / (SIDE - 28.0)));
+        Ui.setMenuHue(Math.round(frac * 359));
+    }
+
+    private void updateMenuOpacity(double mx) {
+        float frac = Ui.clamp01((float) ((mx - (px() + 14)) / (SIDE - 28.0)));
+        Ui.setMenuOpacity(25 + Math.round(frac * 75));
     }
 
     @Override

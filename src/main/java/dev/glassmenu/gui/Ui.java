@@ -5,7 +5,9 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /** Drawing + animation helpers, including the glass panel look. */
 public final class Ui {
-    public static final int ACCENT = 0x6FD3FF;
+    public static int ACCENT = 0x6FD3FF;
+    private static int menuHue = 195;
+    private static int menuOpacity = 100;
     private static boolean lightTheme;
 
     private Ui() {}
@@ -13,9 +15,21 @@ public final class Ui {
     public static boolean isLightTheme() { return lightTheme; }
     public static void setLightTheme(boolean value) { lightTheme = value; }
     public static void toggleTheme() { lightTheme = !lightTheme; }
+    public static int menuHue() { return menuHue; }
+    public static int menuOpacity() { return menuOpacity; }
+    public static float menuOpacityFraction() { return (menuOpacity - 25) / 75.0f; }
+    public static void setMenuHue(int value) {
+        menuHue = Math.floorMod(value, 360);
+        ACCENT = hueColor(menuHue);
+    }
+    public static void setMenuOpacity(int value) {
+        menuOpacity = Math.max(25, Math.min(100, value));
+    }
     public static int primaryText() { return lightTheme ? 0xFF334155 : 0xFFF2F6FB; }
     public static int secondaryText() { return lightTheme ? 0xFF64748B : 0xFF93A1B5; }
-    public static int sidebarOverlay() { return lightTheme ? 0x160A1826 : 0x40000000; }
+    public static int sidebarOverlay() {
+        return mulAlpha(lightTheme ? 0x160A1826 : 0x40000000, menuOpacity / 100.0f);
+    }
     public static int dividerColor() { return lightTheme ? 0x33425468 : 0x2EFFFFFF; }
 
     public static int hueColor(int hue) {
@@ -32,6 +46,21 @@ public final class Ui {
             default -> { r = 1; b = x; }
         }
         return ((int) (r * 255) << 16) | ((int) (gr * 255) << 8) | (int) (b * 255);
+    }
+
+    /** Compact continuous hue selector used as the menu's color wheel. */
+    public static void colorWheel(GuiGraphicsExtractor g, int x, int y, int w, int h, float e) {
+        if (w <= 0 || h <= 0) return;
+        int segments = Math.min(w, 72);
+        for (int i = 0; i < segments; i++) {
+            int left = x + i * w / segments;
+            int right = x + (i + 1) * w / segments;
+            int hue = Math.round(i * 359f / Math.max(1, segments - 1));
+            g.fill(left, y, right, y + h, mulAlpha(argb(255, hueColor(hue)), e));
+        }
+        int markerX = x + Math.round(menuHue / 359f * (w - 1));
+        g.fill(markerX - 1, y - 2, markerX + 2, y + h + 2, mulAlpha(0xFFFFFFFF, e));
+        g.fill(markerX, y - 1, markerX + 1, y + h + 1, mulAlpha(0xFF17212B, e));
     }
 
     public static int argb(int a, int rgb) { return (Math.max(0, Math.min(255, a)) << 24) | (rgb & 0xFFFFFF); }
@@ -81,39 +110,42 @@ public final class Ui {
      * The world stays visible through it.
      */
     public static void glass(GuiGraphicsExtractor g, int x, int y, int w, int h, int r, float e) {
-        rect(g, x - 3, y - 3, w + 6, h + 6, r + 3, mulAlpha(0x14000000, e));
-        rect(g, x - 2, y - 2, w + 4, h + 4, r + 2, mulAlpha(0x1E000000, e));
-        rect(g, x - 1, y - 1, w + 2, h + 2, r + 1, mulAlpha(0x2E000000, e));
-        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0xE8F1F5FA : 0x7A0E1826, e));
-        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0x12FFFFFF : 0x0EFFFFFF, e));
+        float surface = e * (menuOpacity / 100.0f);
+        rect(g, x - 3, y - 3, w + 6, h + 6, r + 3, mulAlpha(0x14000000, surface));
+        rect(g, x - 2, y - 2, w + 4, h + 4, r + 2, mulAlpha(0x1E000000, surface));
+        rect(g, x - 1, y - 1, w + 2, h + 2, r + 1, mulAlpha(0x2E000000, surface));
+        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0xE8F1F5FA : 0x7A0E1826, surface));
+        rect(g, x, y, w, h, r, mulAlpha(lightTheme ? 0x12FFFFFF : 0x0EFFFFFF, surface));
+        rect(g, x, y, w, h, r, mulAlpha(argb(lightTheme ? 10 : 18, ACCENT), surface));
         int n = Math.min(60, h / 3);
         for (int i = 0; i < n; i++) {
             float f = 1f - i / (float) n;
-            g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb((int) (30 * f), ACCENT), e));
+            g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb((int) (30 * f), ACCENT), surface));
         }
         int m = Math.min(24, h / 4);
         for (int i = 0; i < m; i++) {
             int a = (int) (26 * (1f - i / (float) m));
-            g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb(a, 0xFFFFFF), e));
+            g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb(a, 0xFFFFFF), surface));
         }
         int topEdge = lightTheme ? 0xA7FFFFFF : 0x99FFFFFF;
         int sideEdge = lightTheme ? 0x55738698 : 0x44FFFFFF;
-        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(topEdge, e));
-        g.fill(x + r, y + h - 1, x + w - r, y + h, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, e));
-        g.fill(x, y + r, x + 1, y + h - r, mulAlpha(sideEdge, e));
-        g.fill(x + w - 1, y + r, x + w, y + h - r, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, e));
+        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(topEdge, surface));
+        g.fill(x + r, y + h - 1, x + w - r, y + h, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, surface));
+        g.fill(x, y + r, x + 1, y + h - r, mulAlpha(sideEdge, surface));
+        g.fill(x + w - 1, y + r, x + w, y + h - r, mulAlpha(lightTheme ? 0x33425468 : 0x22FFFFFF, surface));
     }
 
     /** Rounded card used for list rows. {@code tint} is any ARGB colour, drawn over a faint base. */
     public static void card(GuiGraphicsExtractor g, int x, int y, int w, int h, float hover, float on, float e) {
-        rect(g, x, y, w, h, 6, mulAlpha(lightTheme ? 0x2AFFFFFF : 0x340A1220, e));
-        rect(g, x, y, w, h, 6, mulAlpha(argb((int) (lightTheme ? 18 + 20 * hover : 10 + 26 * hover), lightTheme ? 0x263548 : 0xFFFFFF), e));
+        float surface = e * (menuOpacity / 100.0f);
+        rect(g, x, y, w, h, 6, mulAlpha(lightTheme ? 0x2AFFFFFF : 0x340A1220, surface));
+        rect(g, x, y, w, h, 6, mulAlpha(argb((int) (lightTheme ? 18 + 20 * hover : 10 + 26 * hover), lightTheme ? 0x263548 : 0xFFFFFF), surface));
         int edge = argb((int) (10 + 15 * hover + 12 * on), lightTheme ? 0x6B7C8F : 0xDDE8F2);
-        g.fill(x + 6, y, x + w - 6, y + 1, mulAlpha(edge, e));
-        g.fill(x + 6, y + h - 1, x + w - 6, y + h, mulAlpha(edge, e));
+        g.fill(x + 6, y, x + w - 6, y + 1, mulAlpha(edge, surface));
+        g.fill(x + 6, y + h - 1, x + w - 6, y + h, mulAlpha(edge, surface));
         if (on > 0.01f) {
-            rect(g, x, y, w, h, 6, mulAlpha(argb((int) (22 * on), ACCENT), e));
-            rect(g, x, y + 5, 2, h - 10, 1, mulAlpha(argb((int) (255 * on), ACCENT), e));
+            rect(g, x, y, w, h, 6, mulAlpha(argb((int) (22 * on), ACCENT), surface));
+            rect(g, x, y + 5, 2, h - 10, 1, mulAlpha(argb((int) (255 * on), ACCENT), surface));
         }
     }
 

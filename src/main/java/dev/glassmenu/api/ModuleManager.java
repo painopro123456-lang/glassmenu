@@ -33,6 +33,7 @@ public class ModuleManager {
         Map<String, Double> settings = new LinkedHashMap<>();
         Double hudX, hudY, hudScale;
         Boolean lightTheme;
+        Integer menuHue, menuOpacity;
     }
 
     public static void register(Module m) { INSTANCE.add(m); }
@@ -185,7 +186,11 @@ public class ModuleManager {
                 return;
             }
             Saved client = data.get("_client");
-            if (client != null && client.lightTheme != null) Ui.setLightTheme(client.lightTheme);
+            if (client != null) {
+                if (client.lightTheme != null) Ui.setLightTheme(client.lightTheme);
+                if (client.menuHue != null) Ui.setMenuHue(client.menuHue);
+                if (client.menuOpacity != null) Ui.setMenuOpacity(client.menuOpacity);
+            }
             for (Module m : modules) {
                 Saved s = data.get(m.id);
                 if (s == null) {
@@ -227,6 +232,8 @@ public class ModuleManager {
             }
             Saved client = new Saved();
             client.lightTheme = Ui.isLightTheme();
+            client.menuHue = Ui.menuHue();
+            client.menuOpacity = Ui.menuOpacity();
             data.put("_client", client);
             Files.writeString(path(), GSON.toJson(data));
         } catch (Exception e) {
