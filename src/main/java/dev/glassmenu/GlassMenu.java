@@ -48,8 +48,14 @@ public class GlassMenu implements ClientModInitializer {
             ModuleManager.get().tick(mc);
         });
 
+        HudElementRegistry.attachElementBefore(VanillaHudElements.MISC_OVERLAYS,
+                Identifier.fromNamespaceAndPath("glassmenu", "rainbow_world_overlay"), GlassMenu::extractWorldOverlay);
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
                 Identifier.fromNamespaceAndPath("glassmenu", "hud"), GlassMenu::extractHud);
+    }
+
+    private static void extractWorldOverlay(GuiGraphicsExtractor g, DeltaTracker tracker) {
+        ModuleManager.get().renderScreenOverlays(g, Minecraft.getInstance());
     }
 
     private static void extractHud(GuiGraphicsExtractor g, DeltaTracker tracker) {
