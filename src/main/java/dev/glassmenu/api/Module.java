@@ -7,6 +7,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lwjgl.glfw.GLFW;
+
 /**
  * Base class for every module. Subclass it, override what you need, and register it with
  * {@link ModuleManager#register(Module)}. It then appears in the menu automatically.
@@ -47,6 +49,15 @@ public abstract class Module {
     }
 
     public Category category() { return category; }
+
+    /** Default key shown in Controls; GLFW_KEY_UNKNOWN leaves the module unbound. */
+    public int defaultKeyCode() { return GLFW.GLFW_KEY_UNKNOWN; }
+
+    /** True for actions that should run only while the key is held, such as Zoom. */
+    public boolean isHoldKeybind() { return false; }
+
+    /** Called every client tick for a hold keybind, including release. */
+    public void onKeybindHeld(Minecraft mc, boolean down) {}
 
     public boolean isEnabled() { return enabled; }
 
