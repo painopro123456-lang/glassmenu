@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "glassmenu",
+  "version": "${version}",
+  "name": "Glass Menu",
+  "description": "A glass-style mod menu with addable modules.",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.glassmenu.GlassMenu"] },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
