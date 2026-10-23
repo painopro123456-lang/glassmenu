@@ -56,7 +56,7 @@ public class ModuleManager {
         Font font = mc.font;
         int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
         for (Module m : modules) {
-            if (!m.isEnabled()) continue;
+            if (!m.isEnabled() || m.isFullScreenOverlay()) continue;
             String line = m.hudLine(mc);
             String displayText = line == null ? m.name : line;
             HudLayout layout = hudLayout(m, w, h);
@@ -74,6 +74,17 @@ public class ModuleManager {
                 m.renderHud(g, font, mc, w, h, dt);
             } finally {
                 g.pose().popMatrix();
+            }
+        }
+    }
+
+    /** Render screen-wide effects before the vanilla HUD, without applying module layout transforms. */
+    public void renderScreenOverlays(GuiGraphicsExtractor g, Minecraft mc) {
+        if (mc.player == null) return;
+        int w = mc.getWindow().getGuiScaledWidth(), h = mc.getWindow().getGuiScaledHeight();
+        for (Module m : modules) {
+            if (m.isEnabled() && m.isFullScreenOverlay()) {
+                m.renderHud(g, mc.font, mc, w, h, 0.0f);
             }
         }
     }
