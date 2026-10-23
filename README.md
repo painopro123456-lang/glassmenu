@@ -13,10 +13,11 @@ Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shif
 
 - **Installed Mods tab:** lists every mod in your `mods` folder automatically (name, version, description).
   Drop a new mod in, restart the game, and it shows up. No setup needed.
-- **Modules tab:** click a row to toggle a module, click the `>` arrow to expand its sliders.
-- Scroll with the mouse wheel. Module settings are saved to `config/glassmenu.json`.
+- **Modules tab:** click a row to toggle it, then click the `>` arrow to adjust its settings. Every module has its own accent hue and background opacity controls; modules may also have extra options.
+- **Edit HUD tab:** drag each HUD to move it, scroll over it to resize, or right-click it to reset. The health module includes a resizable health bar.
+- **Theme button:** switch between dark and light mode. Your theme and module settings are saved to `config/glassmenu.json`.
 
-Built-in modules: FPS, CPS, Coordinates (off), Armor Display, Toggle Sprint (off).
+Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Attack Cooldown, PvP Supplies, Status Effects, Clock, Speed, Direction, Keys, Memory, and Session.
 
 ## Add a module (2 steps)
 1. Create a class:
