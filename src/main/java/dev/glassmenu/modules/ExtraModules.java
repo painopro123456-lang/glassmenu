@@ -36,6 +36,7 @@ public final class ExtraModules {
         ModuleManager.register(new StatusEffectsModule());
         ModuleManager.register(new RainbowWorldModule());
         ModuleManager.register(new JumpscareModule());
+        ModuleManager.register(new ZoomModule());
     }
 
     private static final class ClockModule extends Module {
