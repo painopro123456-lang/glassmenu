@@ -7,8 +7,10 @@ import dev.glassmenu.gui.Ui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -34,6 +36,10 @@ public final class ExtraModules {
         ModuleManager.register(new HitHealthIndicatorModule());
         ModuleManager.register(new AttackCooldownModule());
         ModuleManager.register(new PvpSuppliesModule());
+        ModuleManager.register(new PingModule());
+        ModuleManager.register(new ArmorStatusModule());
+        ModuleManager.register(new TargetEffectsModule());
+        ModuleManager.register(new LowHealthAlertModule());
         ModuleManager.register(new StatusEffectsModule());
         ModuleManager.register(new RainbowWorldModule());
         ModuleManager.register(new JumpscareModule());
@@ -187,6 +193,105 @@ public final class ExtraModules {
                     + " Pearls " + inventory.countItem(Items.ENDER_PEARL)
                     + " Gapples " + inventory.countItem(Items.GOLDEN_APPLE)
                     + " Crystals " + inventory.countItem(Items.END_CRYSTAL);
+        }
+    }
+
+    /** Shows the server-reported latency for the local player. */
+    private static final class PingModule extends Module {
+        private PingModule() {
+            super("ping", "Ping", "Shows your connection latency in milliseconds.", false, Module.Category.HUD);
+        }
+
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null || mc.getConnection() == null) return null;
+            var info = mc.getConnection().getPlayerInfo(mc.player.getUUID());
+            return info == null ? "Ping: --" : "Ping: " + Math.max(0, info.getLatency()) + " ms";
+        }
+    }
+
+    /** Displays remaining durability as percentages for each equipped armor piece. */
+    private static final class ArmorStatusModule extends Module {
+        private static final EquipmentSlot[] SLOTS = {
+                EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+        };
+        private static final String[] LABELS = {"H", "C", "L", "B"};
+
+        private ArmorStatusModule() {
+            super("armor_status", "Armor Status", "Shows remaining durability for equipped armor.", false, Module.Category.PLAYER);
+        }
+
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null) return null;
+            StringBuilder line = new StringBuilder("Armor:");
+            boolean any = false;
+            for (int i = 0; i < SLOTS.length; i++) {
+                ItemStack stack = mc.player.getItemBySlot(SLOTS[i]);
+                if (stack.isEmpty() || stack.getMaxDamage() <= 0) continue;
+                int remaining = Math.max(0, stack.getMaxDamage() - stack.getDamageValue());
+                int percent = Math.round(remaining * 100.0f / stack.getMaxDamage());
+                line.append(' ').append(LABELS[i]).append(' ').append(percent).append('%');
+                any = true;
+            }
+            return any ? line.toString() : "Armor: --";
+        }
+    }
+
+    /** Shows active effects on the entity under the crosshair. */
+    private static final class TargetEffectsModule extends Module {
+        private TargetEffectsModule() {
+            super("target_effects", "Target Effects", "Shows potion effects on the entity you are aiming at.", false, Module.Category.COMBAT);
+        }
+
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null || !(mc.hitResult instanceof EntityHitResult hit)
+                    || !(hit.getEntity() instanceof LivingEntity target)) return null;
+            if (target.getActiveEffects().isEmpty()) return "Target effects: None";
+
+            StringBuilder line = new StringBuilder("Target effects: ");
+            int shown = 0;
+            int total = target.getActiveEffects().size();
+            for (MobEffectInstance effect : target.getActiveEffects()) {
+                if (shown == 2) break;
+                if (shown > 0) line.append(", ");
+                line.append(effect.getEffect().value().getDisplayName().getString());
+                int amplifier = effect.getAmplifier() + 1;
+                if (amplifier > 1) line.append(' ').append(levelName(amplifier));
+                line.append(' ').append(duration(effect.getDuration()));
+                shown++;
+            }
+            if (total > shown) line.append(" +").append(total - shown);
+            return line.toString();
+        }
+
+        private static String duration(int ticks) {
+            if (ticks < 0) return "∞";
+            int seconds = ticks / 20;
+            return String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+        }
+
+        private static String levelName(int level) {
+            return switch (level) {
+                case 1 -> "I";
+                case 2 -> "II";
+                case 3 -> "III";
+                case 4 -> "IV";
+                case 5 -> "V";
+                default -> Integer.toString(level);
+            };
+        }
+    }
+
+    /** Adds a HUD warning when your health drops below a configurable threshold. */
+    private static final class LowHealthAlertModule extends Module {
+        private final NumberSetting threshold = number("threshold_hp", "HP threshold", 2, 20, 1, 6);
+
+        private LowHealthAlertModule() {
+            super("low_health_alert", "Low Health Alert", "Warns you when your health gets low.", false, Module.Category.COMBAT);
+        }
+
+        @Override public String hudLine(Minecraft mc) {
+            if (mc.player == null || mc.player.getHealth() > threshold.get()) return null;
+            return String.format(Locale.ROOT, "LOW HEALTH: %.1f HP", Math.max(0.0f, mc.player.getHealth()));
         }
     }
 

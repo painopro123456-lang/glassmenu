@@ -19,7 +19,7 @@ Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shif
 - **Menu appearance:** use the color spectrum in the bottom-left to choose the menu accent, drag Opacity to adjust the glass panels, and click the theme button to switch between light and dark. These choices save to config/glassmenu.json.
 - **Jumpscare:** covers the full screen above Moon Menu, shows the supplied picture, and plays a sharp scream when activated. Expand its settings to change visible time, fade time, opacity, and scream volume. To use another image, replace config/glassmenu/jumpscare.png with your own PNG (created on first use), then turn the module off and on. The bundled scream is “Scream” by DigitalDominic on Freesound, shared under CC0: https://freesound.org/people/DigitalDominic/sounds/175385/.
 
-Built-in modules include FPS, CPS, Coordinates, Armor Display, Sprint, Health, Hunger, Target HUD, Hit Health, Attack Cooldown, PvP Supplies, Status Effects, Rainbow World, Jumpscare, Clock, Speed, Direction, Keys, Memory, Session, and Zoom. Rainbow World adds a client-side moving rainbow tint; expand its row to change the tint strength, color phase, and cycle speed.
+Built-in modules include FPS, CPS, Coordinates, Armor Display, Armor Status, Sprint, Health, Low Health Alert, Hunger, Target HUD, Target Effects, Hit Health, Attack Cooldown, PvP Supplies, Ping, Status Effects, Rainbow World, Jumpscare, Clock, Speed, Direction, Keys, Memory, Session, and Zoom. Rainbow World adds a client-side moving rainbow tint; expand its row to change the tint strength, color phase, and cycle speed. PvP additions include server ping, target potion effects, armor durability percentages, and a configurable low-health warning.
 
 ## Add a module (2 steps)
 1. Create a class:
