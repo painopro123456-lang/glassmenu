@@ -51,31 +51,83 @@ public final class Ui {
     }
 
     /**
-     * Glass panel: soft shadow, cool translucent tint, bright sheen fading down from the top
-     * edge, and a thin light border. The world stays visible through it.
+     * Glass panel: layered soft shadow, deep cool tint, a faint accent glow along the top,
+     * a bright sheen fading down from the top edge, and a thin light border.
+     * The world stays visible through it.
      */
     public static void glass(GuiGraphicsExtractor g, int x, int y, int w, int h, int r, float e) {
+        rect(g, x - 3, y - 3, w + 6, h + 6, r + 3, mulAlpha(0x14000000, e));
         rect(g, x - 2, y - 2, w + 4, h + 4, r + 2, mulAlpha(0x1E000000, e));
         rect(g, x - 1, y - 1, w + 2, h + 2, r + 1, mulAlpha(0x2E000000, e));
-        rect(g, x, y, w, h, r, mulAlpha(0x6616283A, e));
-        rect(g, x, y, w, h, r, mulAlpha(0x12FFFFFF, e));
-        int n = Math.min(44, h / 3);
+        rect(g, x, y, w, h, r, mulAlpha(0x7A0E1826, e));
+        rect(g, x, y, w, h, r, mulAlpha(0x0EFFFFFF, e));
+        int n = Math.min(60, h / 3);
         for (int i = 0; i < n; i++) {
-            int a = (int) (38 * (1f - i / (float) n));
+            float f = 1f - i / (float) n;
+            g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb((int) (30 * f), ACCENT), e));
+        }
+        int m = Math.min(24, h / 4);
+        for (int i = 0; i < m; i++) {
+            int a = (int) (26 * (1f - i / (float) m));
             g.fill(x + r, y + 1 + i, x + w - r, y + 2 + i, mulAlpha(argb(a, 0xFFFFFF), e));
         }
-        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(0x88FFFFFF, e));
+        g.fill(x + r, y, x + w - r, y + 1, mulAlpha(0x99FFFFFF, e));
         g.fill(x + r, y + h - 1, x + w - r, y + h, mulAlpha(0x22FFFFFF, e));
         g.fill(x, y + r, x + 1, y + h - r, mulAlpha(0x44FFFFFF, e));
         g.fill(x + w - 1, y + r, x + w, y + h - r, mulAlpha(0x22FFFFFF, e));
     }
 
-    /** Small glass pill used for HUD lines. */
+    /** Rounded card used for list rows. {@code tint} is any ARGB colour, drawn over a faint base. */
+    public static void card(GuiGraphicsExtractor g, int x, int y, int w, int h, float hover, float on, float e) {
+        rect(g, x, y, w, h, 6, mulAlpha(0x2A0A1220, e));
+        rect(g, x, y, w, h, 6, mulAlpha(argb((int) (10 + 26 * hover), 0xFFFFFF), e));
+        if (on > 0.01f) {
+            rect(g, x, y, w, h, 6, mulAlpha(argb((int) (22 * on), ACCENT), e));
+            rect(g, x, y + 5, 2, h - 10, 1, mulAlpha(argb((int) (255 * on), ACCENT), e));
+        }
+    }
+
+    /** Toggle switch, 30x14. {@code t} is 0 (off) .. 1 (on). */
+    public static void toggle(GuiGraphicsExtractor g, int x, int y, float t, float e) {
+        int track = lerpColor(0xA0263646, argb(0xF0, ACCENT), t);
+        rect(g, x, y, 30, 14, 7, mulAlpha(track, e));
+        rect(g, x + 3 + Math.round(t * 16), y + 3, 8, 8, 4, mulAlpha(0xFFFFFFFF, e));
+    }
+
+    /** Horizontal slider, 6px track with a round knob. */
+    public static void slider(GuiGraphicsExtractor g, int x, int y, int w, float frac, float e) {
+        rect(g, x, y, w, 6, 3, mulAlpha(0xA0263646, e));
+        int fw = Math.max(6, Math.round(w * clamp01(frac)));
+        rect(g, x, y, fw, 6, 3, mulAlpha(argb(0xE6, ACCENT), e));
+        rect(g, x + fw - 7, y - 2, 10, 10, 5, mulAlpha(argb(0x44, ACCENT), e));
+        rect(g, x + fw - 6, y - 1, 8, 8, 4, mulAlpha(0xFFFFFFFF, e));
+    }
+
+    /** Small rounded label, e.g. a version badge. Returns its width. */
+    public static int badge(GuiGraphicsExtractor g, Font font, String s, int right, int y, float e) {
+        int w = font.width(s) + 10;
+        int x = right - w;
+        rect(g, x, y, w, 12, 6, mulAlpha(argb(0x38, ACCENT), e));
+        text(g, font, s, x + 5, y + 2, mulAlpha(argb(255, ACCENT), e));
+        return w;
+    }
+
+    /** Thin scrollbar on the right edge of a list. */
+    public static void scrollbar(GuiGraphicsExtractor g, int x, int y, int h, float scroll, float maxScroll, float viewH, float contentH, float e) {
+        if (maxScroll <= 0.5f) return;
+        rect(g, x, y, 3, h, 1, mulAlpha(0x22FFFFFF, e));
+        int th = Math.max(16, Math.round(h * viewH / contentH));
+        int ty = y + Math.round((h - th) * (scroll / maxScroll));
+        rect(g, x, ty, 3, th, 1, mulAlpha(argb(0xB0, ACCENT), e));
+    }
+
+    /** Small glass pill used for HUD lines, with an accent tick on the left. */
     public static void pill(GuiGraphicsExtractor g, Font font, int x, int y, String text, int color) {
-        int w = font.width(text) + 10;
-        rect(g, x, y, w, 14, 5, 0x55101C28);
-        g.fill(x + 4, y, x + w - 4, y + 1, 0x55FFFFFF);
-        text(g, font, text, x + 5, y + 3, color);
+        int w = font.width(text) + 15;
+        rect(g, x, y, w, 14, 5, 0x6610182A);
+        g.fill(x + 5, y, x + w - 5, y + 1, 0x44FFFFFF);
+        rect(g, x + 3, y + 3, 2, 8, 1, argb(0xFF, ACCENT));
+        text(g, font, text, x + 9, y + 3, color);
     }
 
     public static void text(GuiGraphicsExtractor g, Font font, String s, int x, int y, int color) {

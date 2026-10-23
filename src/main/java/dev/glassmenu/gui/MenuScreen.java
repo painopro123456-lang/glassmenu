@@ -18,12 +18,12 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Transparent glass menu with two tabs:
+ * Transparent glass menu with a sidebar and two tabs:
  *  - Modules: built-in toggles with sliders
  *  - Installed Mods: every mod in your mods folder, listed automatically
  */
 public class MenuScreen extends Screen {
-    private static final int PW = 280, HEAD = 56, ROW = 28, ROWM = 30, SET_H = 26, FOOT = 24;
+    private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216;
     private static final float OPEN_S = 0.22f, CLOSE_S = 0.14f;
     private static final String[] TABS = {"Modules", "Installed Mods"};
 
@@ -88,11 +88,16 @@ public class MenuScreen extends Screen {
         return h;
     }
 
-    private int viewH() { return (int) Math.min(Math.max(contentH(), 40), Math.max(80, height - 110)); }
-    private int panelH() { return HEAD + viewH() + FOOT; }
+    private int viewH() { return Math.max(70, Math.min(MAX_VIEW, height - 16 - HEAD - PAD)); }
+    private int panelH() { return HEAD + viewH() + PAD; }
     private int px() { return (width - PW) / 2; }
     private int py() { return Math.max(4, (height - panelH()) / 2); }
     private float maxScroll() { return Math.max(0, contentH() - viewH()); }
+
+    private int cx() { return px() + SIDE; }                 // content area left edge
+    private int lx() { return cx() + PAD; }                  // row left edge
+    private int lw() { return PW - SIDE - PAD * 2 - 6; }     // row width (room for scrollbar)
+    private int toggleX() { return lx() + lw() - 8 - 30; }
 
     private float rowTop(int i) {
         float y = py() + HEAD - scroll;
@@ -101,13 +106,7 @@ public class MenuScreen extends Screen {
         return y;
     }
 
-    private int tabX(int i) {
-        int x = px() + 14;
-        for (int j = 0; j < i; j++) x += font.width(TABS[j]) + 16 + 6;
-        return x;
-    }
-
-    private int tabW(int i) { return font.width(TABS[i]) + 16; }
+    private int tabY(int i) { return py() + 46 + i * (TAB_H + 2); }
 
     private String fit(String s, int maxW) {
         if (font.width(s) <= maxW) return s;
@@ -153,52 +152,69 @@ public class MenuScreen extends Screen {
 
         int yOff = (int) ((1f - e) * 12);
         int x = px(), y = py() + yOff, h = panelH();
-        Ui.glass(g, x, y, PW, h, 8, e);
+        Ui.glass(g, x, y, PW, h, 10, e);
 
-        // header + tabs
-        Ui.text(g, font, "Glass Menu", x + 14, y + 10, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
-        String cnt = tab == 0 ? mods.size() + " modules" : inst.size() + " mods";
-        Ui.text(g, font, cnt, x + PW - 14 - font.width(cnt), y + 10, Ui.mulAlpha(0xFFA9B6C8, e));
+        // sidebar: darker strip with a divider
+        int side = Ui.mulAlpha(0x40000000, e);
+        g.fill(x + 8, y + 1, x + SIDE, y + h - 1, side);
+        g.fill(x + 1, y + 8, x + 8, y + h - 8, side);
+        g.fill(x + SIDE, y + 8, x + SIDE + 1, y + h - 8, Ui.mulAlpha(0x2EFFFFFF, e));
+
+        Ui.text(g, font, "Glass Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
+        g.fill(x + 14, y + 29, x + SIDE - 14, y + 30, Ui.mulAlpha(0x22FFFFFF, e));
+
         for (int t = 0; t < TABS.length; t++) {
-            int tx = tabX(t), tw = tabW(t), ty = y + 26;
-            Ui.rect(g, tx, ty, tw, 16, 6, Ui.mulAlpha(Ui.argb((int) (70 * tabAnim[t]), Ui.ACCENT), e));
+            int tx = x + 8, ty = tabY(t) + yOff, tw = SIDE - 16;
+            Ui.rect(g, tx, ty, tw, TAB_H, 6, Ui.mulAlpha(Ui.argb((int) (46 * tabAnim[t]), Ui.ACCENT), e));
+            Ui.rect(g, tx, ty + 5, 2, TAB_H - 10, 1, Ui.mulAlpha(Ui.argb((int) (255 * tabAnim[t]), Ui.ACCENT), e));
             int col = Ui.lerpColor(0xFFA9B6C8, 0xFFFFFFFF, tabAnim[t]);
-            Ui.text(g, font, TABS[t], tx + 8, ty + 4, Ui.mulAlpha(col, e));
+            Ui.text(g, font, TABS[t], tx + 10, ty + 7, Ui.mulAlpha(col, e));
         }
-        g.fill(x + 14, y + HEAD - 6, x + PW - 14, y + HEAD - 5, Ui.mulAlpha(0x33FFFFFF, e));
+
+        String key = GlassMenu.menuKey.getTranslatedKeyMessage().getString();
+        Ui.text(g, font, fit(key, SIDE - 24), x + 14, y + h - 28, Ui.mulAlpha(0xFFC8D4E3, e));
+        Ui.text(g, font, "or Esc to close", x + 14, y + h - 17, Ui.mulAlpha(0xFF7D8BA0, e));
+
+        // content header
+        Ui.text(g, font, TABS[tab], cx() + PAD, y + 14, Ui.mulAlpha(0xFFF2F6FB, e));
+        String cnt = tab == 0 ? mods.size() + " modules" : inst.size() + " mods";
+        Ui.badge(g, font, cnt, x + PW - PAD, y + 12, e);
+        g.fill(cx() + PAD, y + HEAD - 6, x + PW - PAD, y + HEAD - 5, Ui.mulAlpha(0x22FFFFFF, e));
 
         // list (clipped)
         int vy = y + HEAD, vh = viewH();
-        g.enableScissor(x + 2, vy, x + PW - 2, vy + vh);
-        if (tab == 0) drawModules(g, mx, my, dt, e, x, yOff, vy, vh);
-        else drawInstalled(g, mx, my, dt, e, x, yOff, vy, vh);
+        g.enableScissor(cx() + 1, vy, x + PW - 2, vy + vh);
+        if (tab == 0) drawModules(g, mx, my, dt, e, yOff, vy, vh);
+        else drawInstalled(g, mx, my, dt, e, yOff, vy, vh);
         g.disableScissor();
 
-        String hint = GlassMenu.menuKey.getTranslatedKeyMessage().getString() + " or Esc to close";
-        Ui.text(g, font, hint, x + (PW - font.width(hint)) / 2, y + h - 16, Ui.mulAlpha(0xFF7D8BA0, e));
+        Ui.scrollbar(g, x + PW - 8, vy, vh, scroll, maxScroll(), vh, contentH(), e);
     }
 
-    private void drawModules(GuiGraphicsExtractor g, int mx, int my, float dt, float e, int x, int yOff, int vy, int vh) {
+    private boolean inView(int mx, int my) {
+        return my >= py() + HEAD && my < py() + HEAD + viewH() && mx >= cx() && mx < px() + PW;
+    }
+
+    private void drawModules(GuiGraphicsExtractor g, int mx, int my, float dt, float e, int yOff, int vy, int vh) {
+        int lx = lx(), lw = lw(), tx = toggleX();
         for (int i = 0; i < mods.size(); i++) {
             Module m = mods.get(i);
             int ry = Math.round(rowTop(i)) + yOff;
             if (ry > vy + vh || ry + rowH(i) < vy) continue;
 
-            boolean over = !closing && mx >= x + 6 && mx < x + PW - 6 && my >= ry - yOff && my < ry - yOff + ROW - 2
-                    && my >= py() + HEAD && my < py() + HEAD + viewH();
+            boolean over = !closing && inView(mx, my) && mx >= lx && mx < lx + lw
+                    && my >= ry - yOff && my < ry - yOff + ROW - 4;
             hov[i] = Ui.smooth(hov[i], over ? 1f : 0f, dt, 18f);
 
-            Ui.rect(g, x + 6, ry, PW - 12, ROW - 2, 5, Ui.mulAlpha(Ui.argb((int) (40 * hov[i]), 0xFFFFFF), e));
-            Ui.text(g, font, m.name, x + 14, ry + 5, Ui.mulAlpha(0xFFF2F6FB, e));
-            Ui.text(g, font, fit(m.description, PW - 100), x + 14, ry + 15, Ui.mulAlpha(0xFF93A1B5, e));
+            Ui.card(g, lx, ry, lw, ROW - 4, hov[i], sw[i], e);
+            Ui.text(g, font, m.name, lx + 10, ry + 6, Ui.mulAlpha(0xFFF2F6FB, e));
+            Ui.text(g, font, fit(m.description, lw - 90), lx + 10, ry + 17, Ui.mulAlpha(0xFF93A1B5, e));
 
-            int tx = x + PW - 16 - 26, ty = ry + (ROW - 2 - 12) / 2;
-            int track = Ui.lerpColor(0x90304052, Ui.argb(0xE0, Ui.ACCENT), sw[i]);
-            Ui.rect(g, tx, ty, 26, 12, 6, Ui.mulAlpha(track, e));
-            Ui.rect(g, tx + 2 + Math.round(sw[i] * 14), ty + 2, 8, 8, 4, Ui.mulAlpha(0xFFFFFFFF, e));
+            Ui.toggle(g, tx, ry + (ROW - 4 - 14) / 2, sw[i], e);
 
             if (!m.settings.isEmpty()) {
-                Ui.text(g, font, open[i] ? "v" : ">", tx - 14, ry + 9, Ui.mulAlpha(0xFFC8D4E3, e));
+                int col = Ui.lerpColor(0xFF8794A8, 0xFFFFFFFF, Math.max(hov[i], expand[i]));
+                Ui.text(g, font, open[i] ? "v" : ">", tx - 14, ry + 11, Ui.mulAlpha(col, e));
             }
 
             if (expand[i] > 0.02f) {
@@ -206,36 +222,31 @@ public class MenuScreen extends Screen {
                 for (int k = 0; k < m.settings.size(); k++) {
                     NumberSetting s = m.settings.get(k);
                     int sy = ry + ROW + k * SET_H;
-                    Ui.text(g, font, s.label, x + 22, sy + 1, Ui.mulAlpha(0xFFDCE4EE, ea));
+                    Ui.text(g, font, s.label, lx + 14, sy + 1, Ui.mulAlpha(0xFFDCE4EE, ea));
                     String v = s.display();
-                    Ui.text(g, font, v, x + PW - 22 - font.width(v), sy + 1, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), ea));
-                    int sx = x + 22, sw2 = PW - 44, sty = sy + 14;
-                    Ui.rect(g, sx, sty, sw2, 4, 2, Ui.mulAlpha(0x90304052, ea));
-                    int fw = Math.max(4, Math.round(sw2 * Ui.clamp01(s.fraction())));
-                    Ui.rect(g, sx, sty, fw, 4, 2, Ui.mulAlpha(Ui.argb(0xE0, Ui.ACCENT), ea));
-                    Ui.rect(g, sx + fw - 4, sty - 2, 8, 8, 4, Ui.mulAlpha(0xFFFFFFFF, ea));
+                    Ui.text(g, font, v, lx + lw - 14 - font.width(v), sy + 1, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), ea));
+                    Ui.slider(g, lx + 14, sy + 15, lw - 28, s.fraction(), ea);
                 }
             }
         }
     }
 
-    private void drawInstalled(GuiGraphicsExtractor g, int mx, int my, float dt, float e, int x, int yOff, int vy, int vh) {
+    private void drawInstalled(GuiGraphicsExtractor g, int mx, int my, float dt, float e, int yOff, int vy, int vh) {
+        int lx = lx(), lw = lw();
         for (int i = 0; i < inst.size(); i++) {
             Installed m = inst.get(i);
             int ry = Math.round(rowTop(i)) + yOff;
             if (ry > vy + vh || ry + ROWM < vy) continue;
 
-            boolean over = !closing && mx >= x + 6 && mx < x + PW - 6 && my >= ry - yOff && my < ry - yOff + ROWM - 2
-                    && my >= py() + HEAD && my < py() + HEAD + viewH();
+            boolean over = !closing && inView(mx, my) && mx >= lx && mx < lx + lw
+                    && my >= ry - yOff && my < ry - yOff + ROWM - 4;
             instHov[i] = Ui.smooth(instHov[i], over ? 1f : 0f, dt, 18f);
 
-            Ui.rect(g, x + 6, ry, PW - 12, ROWM - 2, 5, Ui.mulAlpha(Ui.argb((int) (40 * instHov[i]), 0xFFFFFF), e));
-            String ver = "v" + m.version();
-            int verW = font.width(ver);
-            Ui.text(g, font, fit(m.name(), PW - 40 - verW), x + 14, ry + 6, Ui.mulAlpha(0xFFF2F6FB, e));
-            Ui.text(g, font, ver, x + PW - 14 - verW, ry + 6, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
+            Ui.card(g, lx, ry, lw, ROWM - 4, instHov[i], 0f, e);
+            int bw = Ui.badge(g, font, "v" + m.version(), lx + lw - 8, ry + 7, e);
+            Ui.text(g, font, fit(m.name(), lw - 36 - bw), lx + 10, ry + 8, Ui.mulAlpha(0xFFF2F6FB, e));
             String desc = m.description().isEmpty() ? "No description" : m.description();
-            Ui.text(g, font, fit(desc, PW - 28), x + 14, ry + 17, Ui.mulAlpha(0xFF93A1B5, e));
+            Ui.text(g, font, fit(desc, lw - 20), lx + 10, ry + 21, Ui.mulAlpha(0xFF93A1B5, e));
         }
     }
 
@@ -248,21 +259,21 @@ public class MenuScreen extends Screen {
 
         if (mx < x || mx > x + PW || my < y || my > y + panelH()) { requestClose(); return true; }
 
-        // tabs
+        // sidebar tabs
         for (int t = 0; t < TABS.length; t++) {
-            if (mx >= tabX(t) && mx < tabX(t) + tabW(t) && my >= y + 26 && my < y + 42) {
+            if (mx >= x + 8 && mx < x + SIDE - 8 && my >= tabY(t) && my < tabY(t) + TAB_H) {
                 if (t != tab) { tab = t; scroll = scrollTarget = 0; dragging = null; }
                 return true;
             }
         }
-        if (tab == 1 || my < y + HEAD || my > y + HEAD + viewH()) return true;
+        if (tab == 1 || mx < cx() || my < y + HEAD || my > y + HEAD + viewH()) return true;
 
+        int lx = lx(), lw = lw(), tx = toggleX();
         for (int i = 0; i < mods.size(); i++) {
             Module m = mods.get(i);
             float ry = rowTop(i);
-            if (my >= ry && my < ry + ROW - 2 && mx >= x + 6 && mx < x + PW - 6) {
-                int arrowX = x + PW - 16 - 26 - 18;
-                if (!m.settings.isEmpty() && mx >= arrowX && mx < arrowX + 16) {
+            if (my >= ry && my < ry + ROW - 4 && mx >= lx && mx < lx + lw) {
+                if (!m.settings.isEmpty() && mx >= tx - 22 && mx < tx - 4) {
                     open[i] = !open[i];
                 } else {
                     m.toggle();
@@ -273,10 +284,10 @@ public class MenuScreen extends Screen {
             if (expand[i] > 0.5f) {
                 for (int k = 0; k < m.settings.size(); k++) {
                     float sy = ry + ROW + k * SET_H;
-                    if (my >= sy + 8 && my <= sy + SET_H && mx >= x + 16 && mx <= x + PW - 16) {
+                    if (my >= sy + 10 && my <= sy + SET_H && mx >= lx + 6 && mx <= lx + lw - 6) {
                         dragging = m.settings.get(k);
-                        dragX = x + 22;
-                        dragW = PW - 44;
+                        dragX = lx + 14;
+                        dragW = lw - 28;
                         updateSlider(mx);
                         return true;
                     }
