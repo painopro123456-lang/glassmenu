@@ -4,7 +4,7 @@ import dev.glassmenu.api.Module;
 import net.minecraft.client.Minecraft;
 
 public class SprintModule extends Module {
-    public SprintModule() { super("sprint", "Toggle Sprint", "Keeps you sprinting while you move forward.", false); }
+    public SprintModule() { super("sprint", "Toggle Sprint", "Keeps you sprinting while you move forward.", false, Module.Category.PLAYER); }
 
     @Override
     public void onTick(Minecraft mc) {

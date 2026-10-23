@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 public class CoordsModule extends Module {
     private final NumberSetting decimals = number("decimals", "Decimals", 0, 2, 1, 0);
 
-    public CoordsModule() { super("coords", "Coordinates", "Shows your X / Y / Z position.", false); }
+    public CoordsModule() { super("coords", "Coordinates", "Shows your X / Y / Z position.", false, Module.Category.HUD); }
 
     @Override
     public String hudLine(Minecraft mc) {

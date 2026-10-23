@@ -23,7 +23,7 @@ import java.util.List;
  *  - Installed Mods: every mod in your mods folder, listed automatically
  */
 public class MenuScreen extends Screen {
-    private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216;
+    private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216, CATEGORY_H = 18;
     private static final float OPEN_S = 0.22f, CLOSE_S = 0.14f;
     private static final String[] TABS = {"Modules", "Installed Mods", "Edit HUD"};
 
@@ -50,7 +50,10 @@ public class MenuScreen extends Screen {
     }
 
     private final Screen parent;
-    private final List<Module> mods = ModuleManager.get().all();
+    private final List<Module> mods = ModuleManager.get().all().stream()
+            .sorted(Comparator.comparingInt((Module module) -> module.category().ordinal())
+                    .thenComparing(module -> module.name.toLowerCase()))
+            .toList();
     private final List<Installed> inst = installedMods();
     private final float[] sw = new float[mods.size()];
     private final float[] hov = new float[mods.size()];
@@ -84,7 +87,13 @@ public class MenuScreen extends Screen {
     private float contentH() {
         if (tab == 1) return inst.size() * ROWM;
         float h = 0;
-        for (int i = 0; i < mods.size(); i++) h += rowH(i);
+        Module.Category previous = null;
+        for (int i = 0; i < mods.size(); i++) {
+            Module.Category current = mods.get(i).category();
+            if (current != previous) h += CATEGORY_H;
+            h += rowH(i);
+            previous = current;
+        }
         return h;
     }
 
@@ -102,8 +111,21 @@ public class MenuScreen extends Screen {
     private float rowTop(int i) {
         float y = py() + HEAD - scroll;
         if (tab == 1) return y + i * ROWM;
-        for (int j = 0; j < i; j++) y += rowH(j);
+        Module.Category previous = null;
+        for (int j = 0; j <= i; j++) {
+            Module.Category current = mods.get(j).category();
+            if (current != previous) y += CATEGORY_H;
+            if (j == i) return y;
+            y += rowH(j);
+            previous = current;
+        }
         return y;
+    }
+
+    private int categoryCount(Module.Category category) {
+        int count = 0;
+        for (Module module : mods) if (module.category() == category) count++;
+        return count;
     }
 
     private int tabY(int i) { return py() + 46 + i * (TAB_H + 2); }
@@ -209,6 +231,20 @@ public class MenuScreen extends Screen {
             boolean over = !closing && inView(mx, my) && mx >= lx && mx < lx + lw
                     && my >= ry - yOff && my < ry - yOff + ROW - 4;
             hov[i] = Ui.smooth(hov[i], over ? 1f : 0f, dt, 18f);
+
+            boolean firstInCategory = i == 0 || mods.get(i - 1).category() != m.category();
+            if (firstInCategory) {
+                int categoryY = ry - CATEGORY_H;
+                if (categoryY + CATEGORY_H >= vy && categoryY <= vy + vh) {
+                    Ui.text(g, font, m.category().displayName(), lx + 6, categoryY + 4,
+                            Ui.mulAlpha(Ui.primaryText(), e));
+                    String count = String.valueOf(categoryCount(m.category()));
+                    Ui.text(g, font, count, lx + lw - 8 - font.width(count), categoryY + 4,
+                            Ui.mulAlpha(Ui.secondaryText(), e));
+                    g.fill(lx + 5, categoryY + CATEGORY_H - 1, lx + lw - 5, categoryY + CATEGORY_H,
+                            Ui.mulAlpha(Ui.dividerColor(), e));
+                }
+            }
 
             Ui.card(g, lx, ry, lw, ROW - 4, hov[i], sw[i], e);
             Ui.text(g, font, m.name, lx + 10, ry + 6, Ui.mulAlpha(Ui.primaryText(), e));

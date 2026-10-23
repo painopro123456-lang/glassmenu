@@ -14,7 +14,7 @@ public class ArmorModule extends Module {
     };
 
     public ArmorModule() {
-        super("armor", "Armor Display", "Shows worn armor with durability.", true);
+        super("armor", "Armor Display", "Shows worn armor with durability.", true, Module.Category.PLAYER);
     }
 
     @Override

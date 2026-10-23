@@ -13,7 +13,7 @@ Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shif
 
 - **Installed Mods tab:** lists every mod in your mods folder automatically (name, version, description).
   Drop a new mod in, restart the game, and it shows up. No setup needed.
-- **Modules tab:** click a row to toggle it, then click the > arrow to adjust its settings. Every module has its own accent hue and background opacity controls; modules may also have extra options.
+- **Modules tab:** click a row to toggle it, then click the > arrow to adjust its settings. Every module has its own accent hue and background opacity controls; modules may also have extra options. Modules are grouped under Combat, Render, Player, and HUD headings.
 - **Edit HUD tab:** drag each HUD to move it, scroll over it to resize, or right-click it to reset. The health module includes a resizable health bar.
 - **Theme button:** switch between dark and light mode. Your theme and module settings are saved to config/glassmenu.json.
 - **Jumpscare:** expand its settings to choose how long it stays visible and how long it fades out. It shows the supplied jumpscare picture by default. To use another image, replace config/glassmenu/jumpscare.png with your own PNG (created on first use), then turn the module off and on. Its opacity slider also controls image transparency.

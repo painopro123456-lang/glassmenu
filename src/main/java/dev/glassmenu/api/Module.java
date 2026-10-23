@@ -12,21 +12,41 @@ import java.util.List;
  * {@link ModuleManager#register(Module)}. It then appears in the menu automatically.
  */
 public abstract class Module {
+    public enum Category {
+        COMBAT("Combat"),
+        RENDER("Render"),
+        PLAYER("Player"),
+        HUD("HUD");
+
+        private final String displayName;
+
+        Category(String displayName) { this.displayName = displayName; }
+        public String displayName() { return displayName; }
+    }
+
     public final String id, name, description;
     public final List<NumberSetting> settings = new ArrayList<>();
     public final NumberSetting hudAccent, hudOpacity;
+    private final Category category;
     private boolean enabled;
 
     protected Module(String id, String name, String description, boolean defaultEnabled) {
+        this(id, name, description, defaultEnabled, Category.HUD);
+    }
+
+    protected Module(String id, String name, String description, boolean defaultEnabled, Category category) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.enabled = defaultEnabled;
+        this.category = category;
         this.hudAccent = new NumberSetting("hud_accent", "Accent hue", 0, 360, 15, 195);
         this.hudOpacity = new NumberSetting("hud_opacity", "Opacity", 0, 100, 5, 40);
         settings.add(hudAccent);
         settings.add(hudOpacity);
     }
+
+    public Category category() { return category; }
 
     public boolean isEnabled() { return enabled; }
 

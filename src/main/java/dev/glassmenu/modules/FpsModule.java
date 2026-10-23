@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 public class FpsModule extends Module {
     private float fps = 60f;
 
-    public FpsModule() { super("fps", "FPS", "Shows your frame rate.", true); }
+    public FpsModule() { super("fps", "FPS", "Shows your frame rate.", true, Module.Category.HUD); }
 
     @Override
     public void onFrame(Minecraft mc, float dt) {

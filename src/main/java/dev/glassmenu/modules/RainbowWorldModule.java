@@ -13,7 +13,7 @@ public final class RainbowWorldModule extends Module {
     private final long startedAt = System.nanoTime();
 
     public RainbowWorldModule() {
-        super("rainbow_world", "Rainbow World", "Tints the world view with a moving rainbow.", false);
+        super("rainbow_world", "Rainbow World", "Tints the world view with a moving rainbow.", false, Module.Category.RENDER);
         hudOpacity.set(20);
     }
 

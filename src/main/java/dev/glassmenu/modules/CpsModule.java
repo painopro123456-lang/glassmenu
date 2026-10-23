@@ -9,7 +9,7 @@ public class CpsModule extends Module {
     private final ArrayDeque<Long> left = new ArrayDeque<>(), right = new ArrayDeque<>();
     private boolean prevAttack, prevUse;
 
-    public CpsModule() { super("cps", "CPS", "Clicks per second (left | right).", true); }
+    public CpsModule() { super("cps", "CPS", "Clicks per second (left | right).", true, Module.Category.COMBAT); }
 
     @Override
     public void onFrame(Minecraft mc, float dt) {

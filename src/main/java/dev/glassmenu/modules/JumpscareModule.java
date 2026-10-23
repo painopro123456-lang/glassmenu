@@ -29,7 +29,7 @@ public final class JumpscareModule extends Module {
     private boolean imageReady;
 
     public JumpscareModule() {
-        super("jumpscare", "Jumpscare", "Shows your custom image; replace config/glassmenu/jumpscare.png to choose it.", false);
+        super("jumpscare", "Jumpscare", "Shows your custom image; replace config/glassmenu/jumpscare.png to choose it.", false, Module.Category.RENDER);
         hudOpacity.set(100);
     }
 

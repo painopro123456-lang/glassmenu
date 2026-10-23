@@ -40,14 +40,14 @@ public final class ExtraModules {
 
     private static final class ClockModule extends Module {
         private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.ROOT);
-        private ClockModule() { super("clock", "Clock", "Shows the current time.", false); }
+        private ClockModule() { super("clock", "Clock", "Shows the current time.", false, Module.Category.HUD); }
         @Override public String hudLine(Minecraft mc) {
             return "Clock: " + LocalTime.now().format(FORMAT);
         }
     }
 
     private static final class SpeedModule extends Module {
-        private SpeedModule() { super("speed", "Speed", "Shows your horizontal movement speed.", false); }
+        private SpeedModule() { super("speed", "Speed", "Shows your horizontal movement speed.", false, Module.Category.PLAYER); }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
             Vec3 motion = mc.player.getDeltaMovement();
@@ -58,7 +58,7 @@ public final class ExtraModules {
 
     private static final class DirectionModule extends Module {
         private static final String[] DIRECTIONS = {"S", "SW", "W", "NW", "N", "NE", "E", "SE"};
-        private DirectionModule() { super("direction", "Direction", "Shows the direction you are facing.", false); }
+        private DirectionModule() { super("direction", "Direction", "Shows the direction you are facing.", false, Module.Category.PLAYER); }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
             int index = Math.floorMod((int) Math.round(mc.player.getYRot() / 45.0f), DIRECTIONS.length);
@@ -67,7 +67,7 @@ public final class ExtraModules {
     }
 
     private static final class KeysModule extends Module {
-        private KeysModule() { super("keys", "Keys", "Shows which movement keys are pressed.", false); }
+        private KeysModule() { super("keys", "Keys", "Shows which movement keys are pressed.", false, Module.Category.HUD); }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
             StringBuilder pressed = new StringBuilder();
@@ -85,7 +85,7 @@ public final class ExtraModules {
     }
 
     private static final class MemoryModule extends Module {
-        private MemoryModule() { super("memory", "Memory", "Shows Java memory usage.", false); }
+        private MemoryModule() { super("memory", "Memory", "Shows Java memory usage.", false, Module.Category.HUD); }
         @Override public String hudLine(Minecraft mc) {
             Runtime runtime = Runtime.getRuntime();
             long usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024L * 1024L);
@@ -96,7 +96,7 @@ public final class ExtraModules {
 
     private static final class SessionModule extends Module {
         private long startedAt = System.nanoTime();
-        private SessionModule() { super("session", "Session", "Shows time since this module was enabled.", false); }
+        private SessionModule() { super("session", "Session", "Shows time since this module was enabled.", false, Module.Category.HUD); }
         @Override public void onEnable() { startedAt = System.nanoTime(); }
         @Override public String hudLine(Minecraft mc) {
             long seconds = (System.nanoTime() - startedAt) / 1_000_000_000L;
@@ -109,7 +109,7 @@ public final class ExtraModules {
 
     private static final class StatusEffectsModule extends Module {
         private StatusEffectsModule() {
-            super("status_effects", "Status Effects", "Shows active potion effects, levels, and remaining time.", false);
+            super("status_effects", "Status Effects", "Shows active potion effects, levels, and remaining time.", false, Module.Category.PLAYER);
         }
 
         @Override public String hudLine(Minecraft mc) {
@@ -152,7 +152,7 @@ public final class ExtraModules {
 
     private static final class TargetHudModule extends Module {
         private TargetHudModule() {
-            super("target_hud", "Target HUD", "Shows the name, health, and distance of the entity you are aiming at.", false);
+            super("target_hud", "Target HUD", "Shows the name, health, and distance of the entity you are aiming at.", false, Module.Category.COMBAT);
         }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null || !(mc.hitResult instanceof EntityHitResult hit)
@@ -165,7 +165,7 @@ public final class ExtraModules {
 
     private static final class AttackCooldownModule extends Module {
         private AttackCooldownModule() {
-            super("attack_cooldown", "Attack Cooldown", "Shows how ready your next attack is.", false);
+            super("attack_cooldown", "Attack Cooldown", "Shows how ready your next attack is.", false, Module.Category.COMBAT);
         }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
@@ -176,7 +176,7 @@ public final class ExtraModules {
 
     private static final class PvpSuppliesModule extends Module {
         private PvpSuppliesModule() {
-            super("pvp_supplies", "PvP Supplies", "Counts totems, ender pearls, golden apples, and end crystals.", false);
+            super("pvp_supplies", "PvP Supplies", "Counts totems, ender pearls, golden apples, and end crystals.", false, Module.Category.COMBAT);
         }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
@@ -191,7 +191,7 @@ public final class ExtraModules {
     private static final class HealthModule extends Module {
         private final NumberSetting barWidth = number("bar_width", "Indicator width", 60, 180, 5, 110);
 
-        private HealthModule() { super("health", "Health", "Shows your health as a number and an adjustable bar.", true); }
+        private HealthModule() { super("health", "Health", "Shows your health as a number and an adjustable bar.", true, Module.Category.PLAYER); }
 
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
@@ -218,7 +218,7 @@ public final class ExtraModules {
     }
 
     private static final class HungerModule extends Module {
-        private HungerModule() { super("hunger", "Hunger", "Shows your current hunger level.", true); }
+        private HungerModule() { super("hunger", "Hunger", "Shows your current hunger level.", true, Module.Category.PLAYER); }
         @Override public String hudLine(Minecraft mc) {
             if (mc.player == null) return null;
             return "Hunger: " + mc.player.getFoodData().getFoodLevel() + "/20";
