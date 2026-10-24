@@ -19,10 +19,12 @@ jobs:
         with:
           distribution: temurin
           java-version: "25"
-      - name: Make Gradle wrapper executable
-        run: chmod +x ./gradlew
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.6.1"
       - name: Build Moon Menu
-        run: ./gradlew --no-daemon build
+        run: gradle --no-daemon build
       - name: Publish JAR to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
