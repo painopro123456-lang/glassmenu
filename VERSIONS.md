@@ -1,32 +1,32 @@
 # Minecraft version compatibility
 
-GlassMenu's minimum intended Minecraft Java version is **1.8.9**. Versions older than 1.8.9 are out of scope and must not be listed or built as supported targets.
+GlassMenu's target range is **Minecraft Java Edition 1.8.9 through 26.2**, inclusive. Versions older than 1.8.9 and newer than 26.2 are outside the current target range unless the project later expands it.
 
-A JAR compiled for one Minecraft version must not be assumed to work on another. Use separate version-specific builds and only advertise a version after it builds and has been tested in-game.
+This range is a compatibility goal, not a claim that every version is already implemented. A JAR compiled for one Minecraft version must not be assumed to work on another. Use separate version-specific builds and only advertise a version after it builds and has been tested in-game.
 
 ## Compatibility policy
 
-- Minimum intended game version: Minecraft Java 1.8.9.
+- Target range: Minecraft Java 1.8.9–26.2, inclusive.
 - Do not support versions older than 1.8.9.
 - Keep the existing Minecraft 26.2 implementation as the modern baseline.
 - Publish a separate JAR for each supported Minecraft/loader target.
 - Isolate version-specific GUI, HUD, keybinding, rendering, and game API calls behind version-specific implementations where practical.
-- Never mark a version as supported until its build succeeds and the mod has been smoke-tested in that game version.
+- Never mark a version as supported until its build succeeds and has been smoke-tested in that game version.
 
 ## Important loader limitation
 
-The current project is a Fabric mod. Fabric's supported Minecraft range starts at 1.14, so **Minecraft 1.8.9 cannot be added just by changing the version number or Fabric metadata**. Supporting 1.8.9 requires a separate legacy implementation using a loader/toolchain compatible with that era (for example, Forge), or a separately maintained legacy branch. The Fabric builds can target 1.14 and newer; the 1.8.9 build must be treated as a distinct port.
+The current project is a Fabric mod. Fabric officially supports releases from 1.14 onward, so **Minecraft 1.8.9 cannot be supported by merely changing the version number or Fabric metadata**. Supporting 1.8.9 requires a separate legacy implementation using a loader/toolchain compatible with that era (for example, Forge), or a separately maintained legacy branch. Fabric builds can cover the 1.14–26.2 part of the target range; 1.8.9 must be a distinct port.
 
 ## Planned rollout
 
 | Tier | Target versions | Status |
 |---|---|---|
 | Modern baseline | 26.2 | Existing source; build/test status must be verified |
-| Modern adjacent versions | 26.1 and compatible newer releases | Planned independent ports/builds |
+| Modern adjacent versions | 26.1 and other releases up to 26.2 | Planned independent ports/builds |
 | Recent legacy Fabric | 1.21.11, 1.21.4, 1.21.1 | Planned ports/builds |
 | Older Fabric | 1.20.1, then earlier releases down to 1.14 | Planned ports/builds |
 | Legacy minimum | 1.8.9 | Separate legacy-loader port required |
-| Below minimum | Older than 1.8.9 | Not supported |
+| Outside target range | Older than 1.8.9 or newer than 26.2 | Not supported by this target policy |
 
 ## Release checklist for each target
 
@@ -40,4 +40,4 @@ The current project is a Fabric mod. Fabric's supported Minecraft range starts a
 
 ## Current status
 
-This document defines the compatibility policy and rollout plan; it does not claim that all listed versions already work. The current source uses Minecraft 26.2-era APIs. Actual ports and builds are still required, and Minecraft 1.8.9 needs its own legacy-loader implementation.
+This document defines the 1.8.9–26.2 compatibility goal; it does not claim that all versions in that range already work. The current source uses Minecraft 26.2-era APIs. Actual ports and builds are still required, and Minecraft 1.8.9 needs its own legacy-loader implementation.
