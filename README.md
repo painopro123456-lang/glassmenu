@@ -3,10 +3,14 @@
 A glass-style, transparent mod menu that lists all your installed mods automatically.
 Needs Java 25, Fabric Loader 0.19.5+, Fabric API 0.161.0+26.2.
 
-## Get the jar
-Push this folder to GitHub (include the hidden .github folder), open the Actions tab,
-download the glassmenu-jar artifact. Or locally: JDK 25, gradle wrapper && ./gradlew build
--> build/libs/glassmenu-1.0.0.jar. Put it in mods with Fabric API.
+## Download and install
+**Direct mod download:** [Download GlassMenu.jar](https://github.com/painopro123456-lang/glassmenu/releases/download/latest/glassmenu-1.0.0.jar)
+
+Download the `.jar` file above and put it directly into your Minecraft `mods` folder. Do not download the repository's **Source code (zip)** — that is the project source, not the mod.
+
+The direct download is refreshed automatically when the `main` branch builds successfully. Requires Fabric Loader, Fabric API, and Java 25 for Minecraft 26.2. Version-tagged releases are also published under Releases.
+
+To build locally: use JDK 25 and run `gradle --no-daemon build`; the mod JAR is created in `build/libs/`.
 
 ## Use it
 Right Shift opens the menu (rebind under Controls > Moon Menu). Esc / Right Shift / click outside closes it.
