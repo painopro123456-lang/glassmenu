@@ -2,20 +2,40 @@ name: build
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 25
-      - uses: gradle/actions/setup-gradle@v4
+          java-version: "25"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 9.7.0
-      - run: gradle build
-      - uses: actions/upload-artifact@v4
+          gradle-version: "9.7.0"
+      - name: Build mod JAR
+        run: gradle --no-daemon clean build
+      - name: Verify mod JAR exists
+        shell: bash
+        run: |
+          shopt -s nullglob
+          jars=(build/libs/glassmenu-*.jar)
+          if (( ${#jars[@]} == 0 )); then
+            echo "No GlassMenu JAR was produced in build/libs/"
+            find build -maxdepth 4 -type f -print || true
+            exit 1
+          fi
+          printf 'Built JAR: %s\n' "${jars[@]}"
+      - name: Upload downloadable JAR artifact
+        uses: actions/upload-artifact@v4
         with:
           name: glassmenu-jar
           path: build/libs/glassmenu-*.jar
+          if-no-files-found: error
+          retention-days: 30
