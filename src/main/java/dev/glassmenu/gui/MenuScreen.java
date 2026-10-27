@@ -23,7 +23,7 @@ import java.util.List;
  *  - Installed Mods: every mod in your mods folder, listed automatically
  */
 public class MenuScreen extends Screen {
-    private static final int PW = 400, SIDE = 104, PAD = 10, HEAD = 40, ROW = 34, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 216, CATEGORY_H = 18;
+    private static final int PW = 900, SIDE = 104, PAD = 10, HEAD = 40, ROW = 48, ROWM = 40, SET_H = 26, TAB_H = 22, MAX_VIEW = 320, GRID_COLS = 5, GRID_GAP = 7;
     private static final float OPEN_S = 0.22f, CLOSE_S = 0.18f;
     private static final String[] TABS = {"Modules", "Installed Mods", "Edit HUD"};
 
@@ -85,30 +85,26 @@ public class MenuScreen extends Screen {
     }
 
     // ---- layout -------------------------------------------------------
-    private float rowH(int i) { return ROW + expand[i] * mods.get(i).settings.size() * SET_H; }
+    private float rowH(int row) {
+        float extra = 0f;
+        int start = row * GRID_COLS, end = Math.min(mods.size(), start + GRID_COLS);
+        for (int i = start; i < end; i++) extra = Math.max(extra, expand[i] * mods.get(i).settings.size() * SET_H);
+        return ROW + extra;
+    }
 
     private void rebuildRowOffsets() {
         float offset = 0f;
-        Module.Category previous = null;
-        for (int i = 0; i < mods.size(); i++) {
-            Module.Category current = mods.get(i).category();
-            if (current != previous) offset += CATEGORY_H;
-            rowOffsets[i] = offset;
-            offset += rowH(i);
-            previous = current;
+        for (int row = 0; row < (mods.size() + GRID_COLS - 1) / GRID_COLS; row++) {
+            int start = row * GRID_COLS, end = Math.min(mods.size(), start + GRID_COLS);
+            for (int i = start; i < end; i++) rowOffsets[i] = offset;
+            offset += rowH(row);
         }
     }
 
     private float contentH() {
         if (tab == 1) return inst.size() * ROWM;
-        float h = 0;
-        Module.Category previous = null;
-        for (int i = 0; i < mods.size(); i++) {
-            Module.Category current = mods.get(i).category();
-            if (current != previous) h += CATEGORY_H;
-            h += rowH(i);
-            previous = current;
-        }
+        float h = 0f;
+        for (int row = 0; row < (mods.size() + GRID_COLS - 1) / GRID_COLS; row++) h += rowH(row);
         return h;
     }
 
@@ -119,9 +115,11 @@ public class MenuScreen extends Screen {
     private float maxScroll() { return Math.max(0, contentH() - viewH()); }
 
     private int cx() { return px() + SIDE; }                 // content area left edge
-    private int lx() { return cx() + PAD; }                  // row left edge
-    private int lw() { return PW - SIDE - PAD * 2 - 6; }     // row width (room for scrollbar)
-    private int toggleX() { return lx() + lw() - 8 - 30; }
+    private int lx() { return cx() + PAD; }                  // content left edge
+    private int lw() { return PW - SIDE - PAD * 2 - 6; }     // full content width
+    private int cardW() { return (lw() - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS; }
+    private int cardX(int i) { return lx() + (i % GRID_COLS) * (cardW() + GRID_GAP); }
+    private int toggleX(int i) { return cardX(i) + cardW() - 38; }
 
     private float rowTop(int i) {
         float y = py() + HEAD - scroll;
@@ -235,7 +233,7 @@ public class MenuScreen extends Screen {
         else drawInstalled(g, mx, my, dt, e, yOff, vy, vh);
         g.disableScissor();
 
-        Ui.scrollbar(g, x + PW - 8, vy, vh, scroll, maxScroll(), vh, contentH(), e);
+        if (maxScroll() > 0) Ui.scrollbar(g, x + PW - 8, vy, vh, scroll, maxScroll(), vh, contentH(), e);
     }
 
     private boolean inView(int mx, int my) {
@@ -243,50 +241,39 @@ public class MenuScreen extends Screen {
     }
 
     private void drawModules(GuiGraphicsExtractor g, int mx, int my, float dt, float e, int yOff, int vy, int vh) {
-        int lx = lx(), lw = lw(), tx = toggleX();
+        int cardWidth = cardW();
         for (int i = 0; i < mods.size(); i++) {
             Module m = mods.get(i);
+            int cardLeft = cardX(i);
+            int tx = toggleX(i);
             int ry = Math.round(rowTop(i)) + yOff;
-            if (ry > vy + vh || ry + rowH(i) < vy) continue;
+            int cardHeight = ROW - 4;
+            if (ry > vy + vh || ry + rowH(i / GRID_COLS) < vy) continue;
 
-            boolean over = !closing && inView(mx, my) && mx >= lx && mx < lx + lw
-                    && my >= ry - yOff && my < ry - yOff + ROW - 4;
+            boolean over = !closing && inView(mx, my) && mx >= cardLeft && mx < cardLeft + cardWidth
+                    && my >= ry - yOff && my < ry - yOff + cardHeight;
             hov[i] = Ui.smooth(hov[i], over ? 1f : 0f, dt, 18f);
 
-            boolean firstInCategory = i == 0 || mods.get(i - 1).category() != m.category();
-            if (firstInCategory) {
-                int categoryY = ry - CATEGORY_H;
-                if (categoryY + CATEGORY_H >= vy && categoryY <= vy + vh) {
-                    Ui.text(g, font, m.category().displayName(), lx + 6, categoryY + 4,
-                            Ui.mulAlpha(Ui.primaryText(), e));
-                    String count = String.valueOf(categoryCount(m.category()));
-                    Ui.text(g, font, count, lx + lw - 8 - font.width(count), categoryY + 4,
-                            Ui.mulAlpha(Ui.secondaryText(), e));
-                    g.fill(lx + 5, categoryY + CATEGORY_H - 1, lx + lw - 5, categoryY + CATEGORY_H,
-                            Ui.mulAlpha(Ui.dividerColor(), e));
-                }
-            }
-
-            Ui.card(g, lx, ry, lw, ROW - 4, hov[i], sw[i], e);
-            Ui.text(g, font, m.name, lx + 10, ry + 6, Ui.mulAlpha(Ui.primaryText(), e));
-            Ui.text(g, font, fit(m.description, lw - 90), lx + 10, ry + 17, Ui.mulAlpha(Ui.secondaryText(), e));
-
-            Ui.toggle(g, tx, ry + (ROW - 4 - 14) / 2, sw[i], e);
+            Ui.card(g, cardLeft, ry, cardWidth, cardHeight, hov[i], sw[i], e);
+            Ui.text(g, font, fit(m.name, cardWidth - 48), cardLeft + 7, ry + 6, Ui.mulAlpha(Ui.primaryText(), e));
+            Ui.text(g, font, fit(m.description, cardWidth - 14), cardLeft + 7, ry + 20, Ui.mulAlpha(Ui.secondaryText(), e));
+            Ui.toggle(g, tx, ry + 7, sw[i], e);
 
             if (!m.settings.isEmpty()) {
                 int col = Ui.lerpColor(0xFF8794A8, 0xFFFFFFFF, Math.max(hov[i], expand[i]));
-                Ui.text(g, font, open[i] ? "v" : ">", tx - 14, ry + 11, Ui.mulAlpha(col, e));
+                Ui.text(g, font, open[i] ? "v" : ">", tx - 13, ry + 25, Ui.mulAlpha(col, e));
             }
 
             if (expand[i] > 0.02f) {
                 float ea = expand[i] * e;
                 for (int k = 0; k < m.settings.size(); k++) {
-                    NumberSetting s = m.settings.get(k);
+                    NumberSetting setting = m.settings.get(k);
                     int sy = ry + ROW + k * SET_H;
-                    Ui.text(g, font, s.label, lx + 14, sy + 1, Ui.mulAlpha(Ui.primaryText(), ea));
-                    String v = s.display();
-                    Ui.text(g, font, v, lx + lw - 14 - font.width(v), sy + 1, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), ea));
-                    Ui.slider(g, lx + 14, sy + 15, lw - 28, s.fraction(), ea);
+                    Ui.text(g, font, fit(setting.label, cardWidth - 48), cardLeft + 7, sy + 1, Ui.mulAlpha(Ui.primaryText(), ea));
+                    String value = setting.display();
+                    Ui.text(g, font, value, cardLeft + cardWidth - 7 - font.width(value), sy + 1,
+                            Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), ea));
+                    Ui.slider(g, cardLeft + 7, sy + 15, cardWidth - 14, setting.fraction(), ea);
                 }
             }
         }
@@ -354,12 +341,12 @@ public class MenuScreen extends Screen {
         }
         if (tab == 1 || mx < cx() || my < y + HEAD || my > y + HEAD + viewH()) return true;
 
-        int lx = lx(), lw = lw(), tx = toggleX();
         for (int i = 0; i < mods.size(); i++) {
             Module m = mods.get(i);
+            int cardLeft = cardX(i), cardWidth = cardW(), tx = toggleX(i);
             float ry = rowTop(i);
-            if (my >= ry && my < ry + ROW - 4 && mx >= lx && mx < lx + lw) {
-                if (!m.settings.isEmpty() && mx >= tx - 22 && mx < tx - 4) {
+            if (my >= ry && my < ry + ROW - 4 && mx >= cardLeft && mx < cardLeft + cardWidth) {
+                if (!m.settings.isEmpty() && mx >= tx - 18 && mx < tx - 2) {
                     open[i] = !open[i];
                 } else {
                     m.toggle();
@@ -370,10 +357,10 @@ public class MenuScreen extends Screen {
             if (expand[i] > 0.5f) {
                 for (int k = 0; k < m.settings.size(); k++) {
                     float sy = ry + ROW + k * SET_H;
-                    if (my >= sy + 10 && my <= sy + SET_H && mx >= lx + 6 && mx <= lx + lw - 6) {
+                    if (my >= sy + 10 && my <= sy + SET_H && mx >= cardLeft + 4 && mx <= cardLeft + cardWidth - 4) {
                         dragging = m.settings.get(k);
-                        dragX = lx + 14;
-                        dragW = lw - 28;
+                        dragX = cardLeft + 7;
+                        dragW = cardWidth - 14;
                         updateSlider(mx);
                         return true;
                     }
