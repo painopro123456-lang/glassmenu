@@ -72,7 +72,7 @@ public class MenuScreen extends Screen {
     private int dragX, dragW;
 
     public MenuScreen(Screen parent) {
-        super(Component.literal("Moon Menu"));
+        super(Component.literal("GlassMenu"));
         this.parent = parent;
     }
 
@@ -188,9 +188,9 @@ public class MenuScreen extends Screen {
         g.fill(x + 1, y + 8, x + 8, y + h - 8, side);
         g.fill(x + SIDE, y + 8, x + SIDE + 1, y + h - 8, Ui.mulAlpha(Ui.dividerColor(), e));
 
-        Ui.text(g, font, "Moon Menu", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
+        Ui.text(g, font, "GLASSMENU", x + 14, y + 14, Ui.mulAlpha(Ui.argb(255, Ui.ACCENT), e));
         g.fill(x + 14, y + 29, x + SIDE - 14, y + 30, Ui.mulAlpha(0x22FFFFFF, e));
-        Ui.text(g, font, "FABRIC 26.2", x + 14, y + 34, Ui.mulAlpha(Ui.secondaryText(), e));
+        Ui.text(g, font, "PvP CLIENT", x + 14, y + 34, Ui.mulAlpha(Ui.secondaryText(), e));
 
         for (int t = 0; t < TABS.length; t++) {
             int tx = x + 8, ty = tabY(t) + yOff, tw = SIDE - 16;
@@ -221,13 +221,14 @@ public class MenuScreen extends Screen {
         Ui.text(g, font, "or Esc to close", x + 14, y + h - 17, Ui.mulAlpha(Ui.secondaryText(), e));
 
         // content header
-        Ui.text(g, font, TABS[tab], cx() + PAD, y + 14, Ui.mulAlpha(Ui.primaryText(), e));
+        Ui.text(g, font, TABS[tab], cx() + PAD, y + 12, Ui.mulAlpha(Ui.primaryText(), e));
+        if (tab == 0) Ui.text(g, font, "Customize your gameplay with modules", cx() + PAD, y + 26, Ui.mulAlpha(Ui.secondaryText(), e));
         String cnt = tab == 0 ? mods.size() + " modules" : inst.size() + " mods";
         Ui.badge(g, font, cnt, x + PW - PAD, y + 12, e);
         g.fill(cx() + PAD, y + HEAD - 6, x + PW - PAD, y + HEAD - 5, Ui.mulAlpha(0x22FFFFFF, e));
 
         // list (clipped)
-        int vy = y + HEAD, vh = viewH();
+        int vy = y + HEAD + (tab == 0 ? 4 : 0), vh = viewH() - (tab == 0 ? 4 : 0);
         g.enableScissor(cx() + 1, vy, x + PW - 2, vy + vh);
         if (tab == 0) drawModules(g, mx, my, dt, e, yOff, vy, vh);
         else drawInstalled(g, mx, my, dt, e, yOff, vy, vh);
