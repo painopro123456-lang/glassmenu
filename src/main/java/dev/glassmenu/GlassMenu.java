@@ -37,6 +37,7 @@ public class GlassMenu implements ClientModInitializer {
         // ---- ADD YOUR MODULES HERE: one line per module -------------------
         ModuleManager.register(new FpsModule());
         ModuleManager.register(new CpsModule());
+        ModuleManager.register(new KeystrokesModule());
         ModuleManager.register(new CoordsModule());
         ModuleManager.register(new ArmorModule());
         ModuleManager.register(new SprintModule());
