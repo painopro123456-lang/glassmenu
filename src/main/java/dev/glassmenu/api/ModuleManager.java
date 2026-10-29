@@ -120,7 +120,7 @@ public class ModuleManager {
             try {
                 g.pose().translate(x, y);
                 g.pose().scale(scale, scale);
-                if (line != null) Ui.pill(g, font, 0, 0, line, Ui.primaryText(),
+                if (line != null || !m.id.equals("keystrokes")) Ui.pill(g, font, 0, 0, line == null ? m.name : line, Ui.primaryText(),
                         m.hudAccent.getInt(), m.hudOpacity.getInt());
                 m.renderHud(g, font, mc, w, h, dt);
             } finally {
@@ -175,6 +175,9 @@ public class ModuleManager {
 
     private HudLayout defaultHudLayout(Module module, int screenW, int screenH) {
         int w = Math.max(1, screenW), h = Math.max(1, screenH);
+        if (module.id.equals("keystrokes")) {
+            return new HudLayout(Math.max(0, w / 2.0 - 39.0) / w, Math.max(0, h - 95.0) / h, 1.0);
+        }
         if (module.id.equals("armor")) {
             return new HudLayout(Math.max(0, w - 24.0) / w, Math.max(0, h / 2.0 - 40.0) / h, 1.0);
         }
