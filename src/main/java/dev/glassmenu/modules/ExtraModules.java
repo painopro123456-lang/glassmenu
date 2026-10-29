@@ -29,7 +29,6 @@ public final class ExtraModules {
         ModuleManager.register(new ClockModule());
         ModuleManager.register(new SpeedModule());
         ModuleManager.register(new DirectionModule());
-        ModuleManager.register(new KeysModule());
         ModuleManager.register(new MemoryModule());
         ModuleManager.register(new SessionModule());
         ModuleManager.register(new HealthModule());
