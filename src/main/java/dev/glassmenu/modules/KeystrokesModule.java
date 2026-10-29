@@ -17,8 +17,8 @@ public final class KeystrokesModule extends Module {
 
     public KeystrokesModule() {
         super("keystrokes", "Keystrokes", "Shows live WASD, jump, left-click and right-click keycaps.", true, Module.Category.HUD);
-        hudOpacity.setValue(72);
-        hudAccent.setValue(205);
+        hudOpacity.set(72);
+        hudAccent.set(205);
     }
 
     @Override public int hudWidth(Font font, Minecraft mc, String displayText) { return PANEL_W; }
